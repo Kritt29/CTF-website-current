@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowUpRight,
   MapPin,
@@ -9,8 +9,7 @@ import {
   Signal,
 } from "lucide-react";
 import NetworkGlobe from "./NetworkGlobe";
-import { useHeroTransition } from "./HeroTransitionController";
-import type { SceneState } from "./sceneState";
+
 import { event } from "./content";
 export function RegisterCTA({ compact = false }: { compact?: boolean }) {
   const [notice, setNotice] = useState(false);
@@ -48,26 +47,13 @@ export function RegisterCTA({ compact = false }: { compact?: boolean }) {
 }
 function IdentityMark() {
   return (
-    <svg
+    <img
       className="identity-mark"
-      viewBox="0 0 80 80"
-      fill="none"
-      aria-hidden="true"
-    >
-      <g stroke="currentColor" strokeWidth="1.6">
-        {Array.from({ length: 12 }, (_, i) => (
-          <g key={i} transform={`rotate(${i * 30} 40 40)`}>
-            <path d="M35 15v-5l5-4 5 4v5M37 17v-5h6v5" />
-            <circle cx="40" cy="3" r="1" />
-            <path d="M32 19l-4-3-4 5 3 4" />
-          </g>
-        ))}
-        <path d="m40 18 19 11v23L40 65 21 52V29Z" />
-        <path d="m40 25 13 8v16l-13 9-13-9V33Z" />
-        <path d="m40 30 8 5v12l-8 6-8-6V35Z" />
-        <path d="M40 36v11" strokeWidth="4" />
-      </g>
-    </svg>
+      src="/assets/ddc-logo-reference.png"
+      alt=""
+      width="85"
+      height="72"
+    />
   );
 }
 function HeroNavigation() {
@@ -162,9 +148,6 @@ function HeroMeta() {
   );
 }
 export default function HeroScreen() {
-  const root = useRef<HTMLElement>(null);
-  const state = useRef<SceneState>({ progress: 0, reveal: 0, reduced: false });
-  useHeroTransition(root, state);
   return (
     <>
       <a className="skip-link" href="#hero-content">
@@ -173,12 +156,12 @@ export default function HeroScreen() {
       <main id="home">
         <section
           className="hero"
-          ref={root}
+
           aria-label="DDC CTF — Enter the Grid"
         >
           <div className="edge-lines" />
           <HeroNavigation />
-          <NetworkGlobe state={state} />
+          <NetworkGlobe />
           <div id="hero-content">
             <HeroTypography />
           </div>
@@ -220,42 +203,12 @@ export default function HeroScreen() {
           <p className="bottom-phrase" aria-hidden="true">
             PEOPLE × IDEAS × EXPLOITS × IMPACT
           </p>
-          <button
-            className="scroll-cue"
-            aria-label="Explore the globe"
-            onClick={() =>
-              window.scrollBy({
-                top: window.innerHeight * 0.7,
-                behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-                  ? "instant"
-                  : "smooth",
-              })
-            }
-          >
+          <div className="scroll-cue" aria-hidden="true">
             SCROLL TO EXPLORE
             <span className="mouse" />
             <ChevronDown />
-          </button>
-          <svg
-            className="transition-route"
-            viewBox="0 0 1440 900"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path
-              id="page-two-route"
-              d="M985 422 C1190 510 980 680 840 760 S740 895 720 1000"
-              fill="none"
-              stroke="#ff6509"
-              strokeWidth="1.5"
-            />
-          </svg>
+          </div>
         </section>
-        <div
-          id="transition-boundary"
-          className="transition-boundary"
-          aria-hidden="true"
-        />
       </main>
     </>
   );

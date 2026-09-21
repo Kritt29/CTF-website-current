@@ -1,6 +1,6 @@
-# DDC CTF — Screen 01
+# DDC CTF — corrected static Screen 01
 
-A React/TypeScript hero built on the provided Next-compatible Vinext starter. Only Screen 01 is implemented.
+React/TypeScript on the existing Next-compatible Vinext starter. This revision is a **static visual approval frame**. No entrance, pointer animation, scroll pinning, route animation, or Page 02 is active or rendered.
 
 ## Run
 
@@ -10,32 +10,27 @@ npm run dev
 npm run build
 ```
 
-## Configuration
+## Structure and configuration
 
-Set `registrationUrl` in `components/hero/content.ts` to the real registration destination. Until supplied, both controls disclose that the destination is unavailable; no registration is collected. CTF, Info, and FAQ are intentionally marked unavailable because their screens are outside this request.
+- `components/hero/HeroScreen.tsx`: real navigation, supplied DDC mark, textured HTML title, metadata, CTA and system labels.
+- `components/hero/NetworkGlobe.tsx`: real orthographic spherical geometry, geographic coastline and lights, varied route/node hierarchy, atmosphere and Hyderabad locator. Rendering occurs on asset completion and resize only.
+- `components/hero/globeGeometry.ts`: geographic conversion, seeded geometry, city locations and arc construction.
+- `components/hero/content.ts`: event configuration. Set `registrationUrl` here when the real destination is available.
+- `app/globals.css`: design tokens, reference-aligned desktop composition and mobile adaptation.
 
-The logo is a hand-reconstructed SVG interpretation of the supplied reference. Replace `IdentityMark` with the official vector when available.
+CTF, Info and FAQ remain marked unavailable because their screens are outside this request. No signup data is collected while the registration URL is unset.
 
-## Structure
+## Asset provenance
 
-- `HeroScreen.tsx`: navigation, identity, typography, metadata, CTA and system labels.
-- `NetworkGlobe.tsx`: orthographic spherical Earth, shader surface, coastlines, geographic particles, routes, packets, locator and depth layers.
-- `globeGeometry.ts`: reproducible geometry and geographic coordinates.
-- `HeroTransitionController.ts`: GSAP entrance, ScrollTrigger pin and restrained Lenis smoothing.
-- `sceneState.ts`: mutable render state; animation avoids React rerenders.
-- `content.ts`: editable event configuration.
+- `public/assets/ddc-logo-reference.png`: unchanged pixel crop of the actual DDC mark from the user-supplied `Page -1.png` (x62, y12, 85×72). It replaces the earlier invented SVG mark.
+- Earth day/topology maps: three-globe example assets at `https://unpkg.com/three-globe/example/img/`.
+- Earth lights: `https://raw.githubusercontent.com/mrdoob/three.js/r150/examples/textures/planets/earth_lights_2048.png`.
+- Detailed coastlines: Natural Earth public-domain 1:50m land, `https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_land.geojson`.
+- Archivo Black: Google Fonts, SIL Open Font License, included with the font.
+- `public/assets/distressed-metal.png` and `public/assets/atmosphere.png`: generated material/environment assets; prompts documented in `ASSET_NOTES.md`. The material is clipped inside real HTML text. The background contains no UI, globe, logos or lettering. The supplied screenshot is never used as a flattened page or globe.
 
-Page 02 can attach after `#transition-boundary` and consume `#page-two-route` and `data-transition-progress`. The route origin follows the projected Hyderabad marker. No Page 02 content exists.
+## Static visual verification
 
-Reduced motion skips the entrance transforms, Lenis and pinning, freezes route packets and pointer motion, and keeps the composition visible. The renderer caps DPR, reduces mobile geometry/particles, pauses rendering in hidden tabs, and disposes geometries, materials, textures and listeners on unmount. A CSS fallback preserves the main composition if WebGL is unavailable.
+Repeated desktop rendering and visual comparison against the approved reference at 1440×900. Checked actual logo, optical title bounds, metallic distress, globe size and roundness, light hierarchy, locator, background, CTA, navigation and callouts. A 390×844 check confirms no horizontal overflow.
 
-## Assets
-
-- Earth surface, night and topology maps: three-globe example assets, retrieved from `https://unpkg.com/three-globe/example/img/`.
-- Coastline geometry: Natural Earth 1:110m land, public domain, `https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson`.
-- Archivo Black: Google Fonts, SIL Open Font License (license included alongside the font).
-- Distressed title texture, SVG identity, favicon, orbital geometry and atmospheric lines are procedurally authored. The reference screenshot is not used as a page background or globe asset.
-
-## Verification
-
-Browser captures at 1440×900, 1920×1080, 1024×900 and 390×844. Checked overflow, runtime errors, CTA feedback, keyboard focus, scroll midpoint and boundary, reverse scroll, and reduced-motion pin removal. The registration destination remains a content dependency; signup submission cannot be verified until it is supplied.
+The final static browser check reports zero browser errors, zero running animations, zero pin spacers, no Page 02 transition path, and identical pixels after pointer movement, scrolling and a wait. WebGL resources, observers and outstanding asset requests are disposed on unmount. Reduced-motion users see the same already-static frame.

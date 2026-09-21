@@ -56,7 +56,6 @@ a:focus-visible {
   top: 10px;
 }
 .hero {
-  animation: screen-wake 0.65s ease-out both;
   height: 100svh;
   min-height: 720px;
   position: relative;
@@ -65,10 +64,7 @@ a:focus-visible {
   background:
     radial-gradient(ellipse at 67% 47%, #14202533, transparent 51%), #020506;
 }
-@keyframes screen-wake {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+
 .hero:before {
   content: "";
   position: absolute;
@@ -86,7 +82,7 @@ a:focus-visible {
   z-index: 5;
 }
 .hero-nav {
-  height: 98px;
+  height: 88px;
   border-bottom: 1px solid var(--line);
   padding: 0 4.2%;
   display: flex;
@@ -103,8 +99,8 @@ a:focus-visible {
   white-space: nowrap;
 }
 .identity-mark {
-  width: 66px;
-  height: 66px;
+  width: 73px;
+  height: 62px;
   color: var(--orange);
 }
 .identity-name {
@@ -144,7 +140,9 @@ a:focus-visible {
   bottom: 0;
   left: 0;
   right: 0;
-  box-shadow: 0 0 10px #ff650950;
+  box-shadow:
+    0 0 6px #ff6509a0,
+    0 0 16px #ff650935;
 }
 .nav-item[aria-disabled="true"] {
   cursor: default;
@@ -166,7 +164,9 @@ a:focus-visible {
   border-radius: 50%;
   background: var(--orange);
   margin-right: 10px;
-  box-shadow: 0 0 15px #ff650950;
+  box-shadow:
+    0 0 7px #ff65099c,
+    0 0 20px #ff650952;
 }
 .registration-status b {
   color: var(--orange);
@@ -185,16 +185,14 @@ a:focus-visible {
   letter-spacing: 0.015em;
   position: relative;
   isolation: isolate;
-  transition:
-    background 0.2s,
-    box-shadow 0.3s;
+  transition: none;
 }
 .register svg {
   width: 19px;
-  transition: transform 0.25s;
+  transition: none;
 }
 .register:hover svg {
-  transform: translate(3px, -3px);
+  transform: none;
 }
 .register:hover {
   background: #ff650910;
@@ -209,22 +207,9 @@ a:focus-visible {
   pointer-events: none;
 }
 .register:hover:after {
-  animation: signal-border 0.6s linear forwards;
+  border-color: #ffae69;
 }
-@keyframes signal-border {
-  25% {
-    clip-path: inset(0 0 98% 0);
-  }
-  50% {
-    clip-path: inset(0 0 0 98%);
-  }
-  75% {
-    clip-path: inset(98% 0 0 0);
-  }
-  100% {
-    clip-path: inset(0 98% 0 0);
-  }
-}
+
 .register.compact {
   height: 44px;
   font-size: 14px;
@@ -235,7 +220,7 @@ a:focus-visible {
   position: absolute;
   z-index: 4;
   left: 4.2%;
-  top: 17%;
+  top: 16%;
   width: 43%;
   transform-style: preserve-3d;
 }
@@ -249,9 +234,9 @@ a:focus-visible {
 .title {
   font-family: Archivo, "Arial Black", Arial, sans-serif;
   font-weight: 950;
-  font-size: clamp(138px, 11.65vw, 230px);
+  font-size: clamp(138px, 12.35vw, 240px);
   letter-spacing: -0.065em;
-  line-height: 0.82;
+  line-height: 0.74;
   margin: 0;
   max-width: 620px;
 }
@@ -265,24 +250,25 @@ a:focus-visible {
   background-clip: text;
   -webkit-background-clip: text;
   background-color: #e2e5e1;
-  background-image: url("/assets/metal.svg");
-  background-size: 490px;
+  background-image: url("/assets/distressed-metal.png");
+  background-size: 760px;
 }
 .title-ctf {
   font-style: italic;
   background-color: var(--orange);
-  background-image: linear-gradient(#ff6509, #ff6509), url("/assets/metal.svg");
+  background-image:
+    linear-gradient(#ff6509, #ff6509), url("/assets/distressed-metal.png");
   background-blend-mode: multiply;
-  margin-top: 8px;
+  margin-top: -3px;
   margin-left: -0.022em;
-  filter: drop-shadow(0 0 11px #fd57062b);
+  filter: drop-shadow(0 0 7px #ff650965) drop-shadow(0 0 22px #ff560036);
 }
 .title-composition {
   position: relative;
 }
 .manifesto {
   position: absolute;
-  left: 70%;
+  left: 74%;
   bottom: 0;
   display: flex;
   gap: 20px;
@@ -302,7 +288,7 @@ a:focus-visible {
   font-size: 25px;
   letter-spacing: 0.32em;
   font-weight: 400;
-  margin: 24px 0 10px;
+  margin: 16px 0 10px;
   white-space: nowrap;
 }
 .hero-description {
@@ -315,8 +301,11 @@ a:focus-visible {
   text-transform: uppercase;
 }
 .hero-register {
-  margin-top: 28px;
-  box-shadow: 0 0 22px #ff650912;
+  margin-top: 20px;
+  box-shadow:
+    0 0 5px #ff650969,
+    0 0 24px #ff560032,
+    inset 0 0 13px #ff650914;
 }
 .hero-meta {
   display: flex;
@@ -353,6 +342,7 @@ a:focus-visible {
   display: block;
 }
 .globe-fallback {
+  right: auto; bottom: auto;
   position: absolute;
   width: 48vw;
   aspect-ratio: 1;
@@ -402,7 +392,7 @@ a:focus-visible {
 }
 .network-label {
   right: 7%;
-  top: 65%;
+  top: 63%;
   display: flex;
   gap: 19px;
 }
@@ -493,19 +483,8 @@ a:focus-visible {
   bottom: 4%;
   font-size: 10px;
 }
-.transition-route {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0;
-}
-.transition-boundary {
-  height: 1px;
-  background: #030607;
-}
+
+
 .registration-note {
   max-width: 310px;
   font-size: 12px;
@@ -775,6 +754,7 @@ a:focus-visible {
     max-width: 230px;
   }
   .globe-fallback {
+  right: auto; bottom: auto;
     width: 100vw;
     left: 16%;
     top: 48%;
@@ -840,5 +820,175 @@ a:focus-visible {
   .hero-register {
     background: #030607de;
   }
-  .network-label { top: 87.5%; }
+  .network-label {
+    top: 87.5%;
+  }
 }
+/* The approved static frame: environment is independent from the globe and UI. */
+.hero:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url("/assets/atmosphere.png") center/cover no-repeat;
+  opacity: 0.68;
+}
+.identity-mark {
+  object-fit: contain;
+  mix-blend-mode: screen;
+}
+.register {
+  font-weight: 400;
+  border-color: #ff6a00;
+}
+.title-ctf {
+  background-image:
+    linear-gradient(#ff5b00, #ff5b00), url("/assets/distressed-metal.png");
+}
+.system-label {
+  background: #01040580;
+  border-color: #9aa5a333;
+  font-size: 13px;
+}
+.hyderabad-label {
+  padding: 12px 13px;
+  line-height: 1.4;
+}
+.hyderabad-label small {
+  font-size: 11px;
+  color: #a0aab5;
+}
+@media (min-width: 1700px) {
+  .hero-nav {
+    height: 106px;
+  }
+  .hero-copy {
+    top: 16.5%;
+  }
+}
+@media (max-width: 700px) {
+  .hero-nav {
+    height: 80px;
+  }
+  .hero-copy {
+    top: 158px;
+  }
+  .identity-mark {
+    width: 48px;
+    height: 43px;
+  }
+  .title {
+    font-size: clamp(100px, 27vw, 170px);
+    line-height: 0.84;
+  }
+  .title-ctf {
+    margin-top: 5px;
+  }
+  .system-label {
+    font-size: 10px;
+  }
+  .hyderabad-label {
+    padding: 7px;
+  }
+  .hyderabad-label small {
+    font-size: 9px;
+  }
+  .hero:after {
+    opacity: 0.35;
+  }
+}
+
+.title-ddc {
+  background-image:
+    linear-gradient(110deg, #ffffff55, #ffffff16),
+    url("/assets/distressed-metal.png");
+}
+.title-ctf {
+  background-image:
+    linear-gradient(#ff590057, #ff590057), linear-gradient(#ff5900, #ff5900),
+    url("/assets/distressed-metal.png");
+  background-blend-mode: normal, multiply, normal;
+  background-position:
+    0 0,
+    0 0,
+    -100px -260px;
+}
+.hero:after {
+  opacity: 0.68;
+}
+
+@media (min-width: 1201px) {
+  .identity {
+    gap: 8px;
+  }
+  .identity-mark {
+    width: 68px;
+    height: 58px;
+  }
+  .identity-name {
+    font-size: 15px;
+  }
+  .navigation {
+    position: absolute;
+    left: 29.1%;
+    gap: 48px;
+  }
+  .nav-actions {
+    margin-left: auto;
+  }
+  .register.compact {
+    padding-inline: 22px;
+    gap: 17px;
+  }
+}
+.network-label {
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  .network-label {
+    font-size: 9px;
+    padding: 7px;
+  }
+  .hero:after {
+    opacity: 0.38;
+  }
+}
+/* Optical alignment measured against the approved reference. */
+@media (min-width: 1201px) {
+  .title-ddc {
+    transform: scaleX(1.14);
+    margin-left: -0.078em;
+  }
+  .title-ctf {
+    font-size: 0.94em;
+    transform: scaleX(1.16);
+    margin-left: -0.145em;
+    margin-top: 3px;
+  }
+  .manifesto {
+    left: 65%;
+    line-height: 1.3;
+  }
+  .hero-tagline {
+    font-size: 24px;
+    line-height: 1.3;
+    margin-top: 12px;
+  }
+  .hero-register {
+    margin-top: 32px;
+  }
+}
+.hero:after {
+  opacity: 0.48;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 4%,
+    #000 21%,
+    #000 91%,
+    transparent 100%
+  );
+}
+
