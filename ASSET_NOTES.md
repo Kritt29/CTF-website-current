@@ -1,5 +1,11 @@
 # Visual correction assets
 
+## Globe depth correction
+
+`public/assets/moon-surface.jpg` is the Three.js example lunar texture from [the source repository](https://github.com/mrdoob/three.js/blob/dev/examples/textures/planets/moon_1024.jpg). It is shared by three real sphere meshes matching the upper, far-right and lower-right reference bodies. Their size, positions, crater shading and directional illumination are rendered in WebGL. No new generated artwork was used in this correction pass.
+
+The existing distressed-metal material is also sampled for a restrained silver micro-fracture treatment near Earth's limb. Geography remains driven by the actual Earth maps and coastline geometry.
+
 These two assets were generated using the built-in imagegen tool, then copied into the project. Neither asset contains the interface or Earth globe. The actual DDC logo was extracted directly from the supplied reference and was not generated.
 
 ## Text material

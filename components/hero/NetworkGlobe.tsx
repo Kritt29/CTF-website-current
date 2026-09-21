@@ -5,7 +5,7 @@ import { arc, cities, geographic, seededRandom } from "./globeGeometry";
 
 const surfaceVertex = `varying vec2 vUv;varying vec3 vNormal;varying vec3 vPosition;
 void main(){vUv=uv;vNormal=normalize(normalMatrix*normal);vec4 p=modelViewMatrix*vec4(position,1.);vPosition=p.xyz;gl_Position=projectionMatrix*p;}`;
-const surfaceFragment = `uniform sampler2D dayMap;uniform sampler2D nightMap;uniform sampler2D heightMap;
+const surfaceFragment = `uniform sampler2D dayMap;uniform sampler2D nightMap;uniform sampler2D heightMap;uniform sampler2D detailMap;
 varying vec2 vUv;varying vec3 vNormal;varying vec3 vPosition;
 void main(){
  vec3 day=texture2D(dayMap,vUv).rgb;vec3 night=texture2D(nightMap,vUv).rgb;
@@ -17,10 +17,18 @@ void main(){
  float land=smoothstep(.018,.07,day.r-day.b*.66);
  float terrain=dot(day,vec3(.28,.56,.16));float relief=abs(dx+dy)*3.5;
  float urban=pow(max(0.,night.r-night.b*.92),1.05)*3.;
- vec3 base=vec3(.0015,.004,.006);
- base+=land*(terrain*.24+relief*.30)*vec3(.57,.7,.74)*(light*.78+.12);
- base+=urban*vec3(1.,.34,.045)*1.55;
- base+=rim*vec3(.23,.30,.33)*(light*.8+.12)*(0.55+terrain*1.8);
+ float fractured=smoothstep(.014,.09,abs(dx-dy))*land;
+ vec3 base=vec3(.0008,.0017,.002);
+ base+=land*(terrain*.12+relief*.52)*vec3(.65,.72,.75)*(light*.7+.2);
+ base+=fractured*vec3(.48,.55,.57)*(pow(1.-facing,2.)*.8+.1);
+ float silver=smoothstep(.67,.83,vUv.y)*.8;
+ base+=urban*mix(vec3(1.,.34,.045),vec3(.8,.9,.94),silver)*1.1;
+ base+=rim*vec3(.39,.46,.48)*(light*.8+.2)*(0.3+terrain*2.8);
+ vec2 detailUv=fract(vUv*vec2(4.,2.));
+ float detail=texture2D(detailMap,detailUv).r;
+ float fracture=abs(detail-texture2D(detailMap,detailUv+vec2(.002,.001)).r);
+ float shell=pow(1.-facing,3.2);
+ base+=vec3(.65,.74,.76)*smoothstep(.08,.34,fracture)*shell*.75;
  gl_FragColor=vec4(base,1.);
 }`;
 type LandData = {
@@ -28,14 +36,18 @@ type LandData = {
     geometry: { type: string; coordinates: number[][][] | number[][][][] };
   }[];
 };
+function stableLayer<T extends THREE.Object3D>(object: T, order: number): T {
+  object.renderOrder = order;
+  return object;
+}
 function nodeTexture() {
   const c = document.createElement("canvas");
   c.width = c.height = 128;
   const ctx = c.getContext("2d")!;
   const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
   g.addColorStop(0, "rgba(255,255,235,1)");
-  g.addColorStop(0.065, "rgba(255,255,220,1)");
-  g.addColorStop(0.14, "rgba(255,169,60,1)");
+  g.addColorStop(0.095, "rgba(255,255,220,1)");
+  g.addColorStop(0.17, "rgba(255,169,60,1)");
   g.addColorStop(0.26, "rgba(255,82,0,.65)");
   g.addColorStop(0.52, "rgba(255,63,0,.14)");
   g.addColorStop(1, "rgba(255,50,0,0)");
@@ -93,7 +105,40 @@ export default function NetworkGlobe() {
     };
     const day = load("/assets/earth-day.jpg"),
       night = load("/assets/earth-lights.png"),
-      height = load("/assets/earth-topology.png");
+      height = load("/assets/earth-topology.png"),
+      detail = load("/assets/distressed-metal.png");
+    const moonMap = load("/assets/moon-surface.jpg");
+    const moons = [0, 1, 2].map((i) => {
+      const moon = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 64, 40),
+        new THREE.ShaderMaterial({
+          uniforms: {
+            moonMap: { value: moonMap },
+            keyLight: {
+              value: new THREE.Vector3(i === 0 ? 0.65 : -0.5, 0.7, -0.18),
+            },
+            intensity: { value: i === 0 ? 3.7 : 1.1 },
+          },
+          vertexShader: surfaceVertex,
+          fragmentShader: `uniform sampler2D moonMap;uniform vec3 keyLight;uniform float intensity;
+          varying vec2 vUv;varying vec3 vNormal;varying vec3 vPosition;
+          void main(){
+            float h=texture2D(moonMap,vUv).r;
+            vec2 d=vec2(h-texture2D(moonMap,vUv+vec2(.001,0.)).r,h-texture2D(moonMap,vUv+vec2(0.,.002)).r);
+            vec3 n=normalize(vNormal+vec3(d*1.9,0.));
+            float lit=max(dot(n,normalize(keyLight)),0.);
+            float rim=pow(1.-max(dot(normalize(vNormal),normalize(-vPosition)),0.),7.);
+            float relief=abs(d.x-d.y);
+            vec3 color=vec3(.003,.005,.006)+vec3(.7,.76,.78)*(h*h*.8+relief*1.3)*pow(lit,1.8);
+            color+=vec3(.46,.53,.56)*rim*pow(lit,1.6)*.65;
+            gl_FragColor=vec4(color*intensity,1.);
+          }`,
+        }),
+      );
+      moon.rotation.set(0.2, i * 1.3, -0.35);
+      scene.add(moon);
+      return moon;
+    });
     day.anisotropy = night.anisotropy = Math.min(
       renderer.capabilities.getMaxAnisotropy(),
       8,
@@ -106,6 +151,7 @@ export default function NetworkGlobe() {
             dayMap: { value: day },
             nightMap: { value: night },
             heightMap: { value: height },
+            detailMap: { value: detail },
           },
           vertexShader: surfaceVertex,
           fragmentShader: surfaceFragment,
@@ -130,6 +176,7 @@ export default function NetworkGlobe() {
       .then((r) => r.json() as Promise<LandData>)
       .then((data) => {
         if (disposed) return;
+        const random = seededRandom(240);
         const vertices: number[] = [],
           colors: number[] = [];
         for (const feature of data.features) {
@@ -148,12 +195,12 @@ export default function NetworkGlobe() {
                   ...geographic(b[1], b[0], 2.006).toArray(),
                 );
                 const v = 0.28 + random() * 0.65,
-                  warm = a[0] > 50 && a[0] < 125 && a[1] < 36 && a[1] > -12;
+                  warm = a[0] > 62 && a[0] < 120 && a[1] < 30 && a[1] > -12;
                 for (let j = 0; j < 2; j++)
                   colors.push(
-                    warm ? v : v * 0.72,
-                    warm ? v * 0.58 : v * 0.86,
-                    warm ? v * 0.28 : v * 0.93,
+                    warm ? v : v * 0.9,
+                    warm ? v * 0.68 : v * 0.96,
+                    warm ? v * 0.4 : v,
                   );
               }
         }
@@ -164,13 +211,17 @@ export default function NetworkGlobe() {
         );
         g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
         earth.add(
-          new THREE.LineSegments(
-            g,
-            new THREE.LineBasicMaterial({
-              vertexColors: true,
-              transparent: true,
-              opacity: 0.76,
-            }),
+          stableLayer(
+            new THREE.LineSegments(
+              g,
+              new THREE.LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.93,
+                depthWrite: false,
+              }),
+            ),
+            5,
           ),
         );
         requestRender();
@@ -210,18 +261,94 @@ export default function NetworkGlobe() {
       secondary: number[] = [],
       minor: number[] = [];
     cities.forEach(([lat, lon], i) => {
+      if (i === 0) return; // The locator has its own clean target and halo.
       (i % 7 === 0 ? anchor : i % 3 === 0 ? secondary : minor).push(
         ...geographic(lat, lon, 2.03).toArray(),
       );
     });
-    points(anchor, 36, 1);
-    points(secondary, 18, 0.9);
+    points(anchor, 37, 0.88);
+    points(secondary, 23, 0.95);
     points(minor, 8, 0.85);
+    const oceanHubs = [
+      [43, 64],
+      [34, 96],
+      [-13, 64],
+      [-29, 100],
+      [-38, 138],
+      [7, 123],
+      [4, 32],
+      [-38, 38],
+    ];
+    points(
+      oceanHubs.flatMap(([lat, lon]) => geographic(lat, lon, 2.035).toArray()),
+      32,
+      0.95,
+    );
+    const reliefImage = new Image();
+    reliefImage.src = "/assets/earth-topology.png";
+    reliefImage.onload = () => {
+      if (disposed) return;
+      const random = seededRandom(137);
+      const canvas = document.createElement("canvas");
+      canvas.width = 2048;
+      canvas.height = 1024;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+      ctx.drawImage(reliefImage, 0, 0, 2048, 1024);
+      const pixels = ctx.getImageData(0, 0, 2048, 1024).data;
+      const positions: number[] = [],
+        colors: number[] = [];
+      for (let y = 80; y < 840; y += mobile ? 4 : 2)
+        for (let x = 1; x < 2046; x += 2) {
+          const p = (y * 2048 + x) * 4;
+          const slope =
+            Math.abs(pixels[p] - pixels[p + 8]) +
+            Math.abs(pixels[p] - pixels[p + 16384]);
+          if (pixels[p] < 10 || slope < 16 || random() > 0.57) continue;
+          positions.push(
+            ...geographic(
+              90 - ((y + random()) / 1024) * 180,
+              ((x + random()) / 2048) * 360 - 180,
+              2.007,
+            ).toArray(),
+          );
+          const v = Math.min(0.8, slope / 100) * (0.4 + random() * 0.6);
+          colors.push(v * 0.83, v * 0.95, v);
+        }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(positions, 3),
+      );
+      geometry.setAttribute(
+        "color",
+        new THREE.Float32BufferAttribute(colors, 3),
+      );
+      earth.add(
+        stableLayer(
+          new THREE.Points(
+            geometry,
+            new THREE.ShaderMaterial({
+              vertexColors: true,
+              transparent: true,
+              depthWrite: false,
+              uniforms: {
+                pixelRatio: { value: Math.min(devicePixelRatio, 1.8) },
+              },
+              vertexShader: `uniform float pixelRatio;varying vec3 vColor;varying float edge;void main(){vColor=color;vec3 n=normalize(normalMatrix*normalize(position));edge=pow(1.-abs(n.z),1.5);gl_PointSize=pixelRatio;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+              fragmentShader: `varying vec3 vColor;varying float edge;void main(){gl_FragColor=vec4(vColor,.12+edge*.85);}`,
+            }),
+          ),
+          2,
+        ),
+      );
+      requestRender();
+    };
     // City clusters sampled from the night map, not uniformly scattered land dots.
     const image = new Image();
     image.src = "/assets/earth-lights.png";
     image.onload = () => {
       if (disposed) return;
+      const random = seededRandom(941);
       const c = document.createElement("canvas");
       c.width = 2048;
       c.height = 1024;
@@ -232,31 +359,37 @@ export default function NetworkGlobe() {
         col: number[] = [],
         fine: number[] = [],
         fineColors: number[] = [];
-      for (let i = 0; i < (mobile ? 55000 : 280000); i++) {
-        const lon = random() * 360 - 180,
-          lat = (Math.asin(random() * 2 - 1) * 180) / Math.PI,
-          x = Math.floor(((lon + 180) / 360) * 2047),
-          y = Math.floor(((90 - lat) / 180) * 1023),
-          index = (y * 2048 + x) * 4;
-        const r = px[index] / 255,
-          g = px[index + 1] / 255,
-          b = px[index + 2] / 255,
-          urban = Math.max(0, r - b * 0.9);
-        if (urban > 0.012 && random() < urban * 9) {
-          pos.push(...geographic(lat, lon, 2.012).toArray());
-          const v = 0.45 + random() * 0.55;
-          col.push(v, v * (0.31 + random() * 0.22), v * 0.07);
-        } else if (lat > -58 && g > 0.08 && r > b * 0.75 && random() > 0.78) {
-          fine.push(...geographic(lat, lon, 2.009).toArray());
-          const v = 0.1 + Math.pow(random(), 3) * 0.52;
-          fineColors.push(v * 0.78, v * 0.88, v);
+      // Sample the luminous atlas pixels directly so sparse rural lights survive.
+      const stride = mobile ? 4 : 2;
+      for (let y = 40; y < 880; y += stride)
+        for (let x = 0; x < 2048; x += stride) {
+          const lon = ((x + random()) / 2048) * 360 - 180,
+            lat = 90 - ((y + random()) / 1024) * 180,
+            index = (y * 2048 + x) * 4;
+          const r = px[index] / 255,
+            g = px[index + 1] / 255,
+            b = px[index + 2] / 255,
+            urban = Math.max(0, r - b * 0.9);
+          if (urban > 0.026 && random() < urban * 12) {
+            pos.push(...geographic(lat, lon, 2.012).toArray());
+            const v = 0.45 + random() * 0.55;
+            const silver = lat > 40 || lon < 30;
+            col.push(
+              v,
+              v * (silver ? 0.86 : 0.31 + random() * 0.22),
+              v * (silver ? 0.79 : 0.07),
+            );
+          } else if (lat > -58 && g > 0.08 && r > b * 0.75 && random() > 0.86) {
+            fine.push(...geographic(lat, lon, 2.009).toArray());
+            const v = 0.16 + Math.pow(random(), 3) * 0.7;
+            fineColors.push(v * 0.78, v * 0.88, v);
+          }
         }
-      }
       // Uneven metropolitan clusters, with positions constrained by the source land map.
       const clusters: number[] = [],
         clusterColors: number[] = [];
       cities.forEach(([lat, lon], city) => {
-        const count = mobile ? 60 : city < 12 ? 180 : 80;
+        const count = mobile ? 50 : city < 12 ? 140 : 65;
         const spread = city < 12 ? 5.3 : 3.4;
         for (let i = 0; i < count; i++) {
           const a = random() * Math.PI * 2,
@@ -278,7 +411,12 @@ export default function NetworkGlobe() {
           if (px[p] + px[p + 1] < 25 || px[p + 2] > px[p] * 1.8) continue;
           clusters.push(...geographic(la, lo, 2.014).toArray());
           const v = 0.25 + Math.pow(random(), 0.5) * 0.75;
-          clusterColors.push(v, v * (0.25 + random() * 0.24), v * 0.035);
+          const silver = la > 40 || lo < 35;
+          clusterColors.push(
+            v,
+            v * (silver ? 0.83 : 0.25 + random() * 0.24),
+            v * (silver ? 0.75 : 0.035),
+          );
         }
       });
       const clusterGeo = new THREE.BufferGeometry();
@@ -291,54 +429,83 @@ export default function NetworkGlobe() {
         new THREE.Float32BufferAttribute(clusterColors, 3),
       );
       earth.add(
-        new THREE.Points(
-          clusterGeo,
-          new THREE.PointsMaterial({
-            size: 1.2,
-            sizeAttenuation: false,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.9,
-            depthWrite: false,
-          }),
+        stableLayer(
+          new THREE.Points(
+            clusterGeo,
+            new THREE.PointsMaterial({
+              size: 1.2,
+              sizeAttenuation: false,
+              vertexColors: true,
+              transparent: true,
+              opacity: 0.9,
+              depthWrite: false,
+            }),
+          ),
+          3,
         ),
       );
       for (const [p, colors, size, opacity] of [
         [pos, col, 1.55, 0.94],
-        [fine, fineColors, 0.8, 0.55],
+        [fine, fineColors, 1.1, 0.75],
       ] as [number[], number[], number, number][]) {
         const g = new THREE.BufferGeometry();
         g.setAttribute("position", new THREE.Float32BufferAttribute(p, 3));
         g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
         earth.add(
-          new THREE.Points(
-            g,
-            new THREE.PointsMaterial({
-              size,
-              sizeAttenuation: false,
-              vertexColors: true,
-              transparent: true,
-              opacity,
-              depthWrite: false,
-            }),
+          stableLayer(
+            new THREE.Points(
+              g,
+              new THREE.PointsMaterial({
+                size,
+                sizeAttenuation: false,
+                vertexColors: true,
+                transparent: true,
+                opacity,
+                depthWrite: false,
+              }),
+            ),
+            4,
           ),
         );
       }
       requestRender();
     };
+    const lineBatches = new Map<
+      THREE.Group,
+      { positions: number[]; colors: number[]; alphas: number[] }
+    >();
     function line(
       path: THREE.Vector3[],
       color: THREE.ColorRepresentation,
       opacity: number,
       parent = earth,
     ) {
-      parent.add(
-        new THREE.Line(
-          new THREE.BufferGeometry().setFromPoints(path),
-          new THREE.LineBasicMaterial({ color, transparent: true, opacity }),
-        ),
-      );
+      let batch = lineBatches.get(parent);
+      if (!batch) {
+        batch = { positions: [], colors: [], alphas: [] };
+        lineBatches.set(parent, batch);
+      }
+      const rgb = new THREE.Color(color);
+      for (let i = 1; i < path.length; i++) {
+        batch.positions.push(...path[i - 1].toArray(), ...path[i].toArray());
+        for (let k = 0; k < 2; k++) {
+          batch.colors.push(rgb.r, rgb.g, rgb.b);
+          batch.alphas.push(opacity);
+        }
+      }
     }
+    oceanHubs.forEach(([lat, lon], i) => {
+      const destination = cities[(i * 7 + 6) % cities.length];
+      line(
+        arc(
+          geographic(lat, lon),
+          geographic(destination[0], destination[1]),
+          0.06 + (i % 3) * 0.11,
+        ),
+        0xff7106,
+        0.28 + (i % 3) * 0.1,
+      );
+    });
     // Selected routes carry the orange hierarchy; secondary connections are subdued.
     const routes: Array<[number, number, number, number]> = [
       [13, 7, 0.51, 0.8],
@@ -395,9 +562,9 @@ export default function NetworkGlobe() {
         );
       }
     });
-    points(junctions, 38, 1);
-    points(weakJunctions, 17, 0.9);
-    for (let i = 0; i < (mobile ? 13 : 29); i++) {
+    points(junctions, 46, 1);
+    points(weakJunctions, 23, 0.95);
+    for (let i = 0; i < (mobile ? 18 : 48); i++) {
       const a = cities[(i * 3 + 1) % cities.length],
         b = cities[(i * 7 + 4) % cities.length];
       line(
@@ -407,56 +574,115 @@ export default function NetworkGlobe() {
           0.03 + random() * 0.1,
         ),
         i % 3 === 0 ? 0xc0d2d4 : 0xff7b28,
-        0.08 + random() * 0.2,
+        0.035 + random() * 0.16,
       );
     }
-    for (let i = 0; i < (mobile ? 4 : 10); i++) {
-      const group = new THREE.Group();
-      group.rotation.set(0.45 + i * 0.28, 0.18 + i * 0.37, -0.65 + i * 0.24);
-      flightPaths.add(group);
-      const radius = 2.15 + (i % 4) * 0.15,
-        path: THREE.Vector3[] = [];
-      for (let j = 0; j <= 210; j++) {
-        const t = (j / 210) * Math.PI * 2;
-        path.push(
-          new THREE.Vector3(Math.cos(t) * radius, Math.sin(t) * radius, 0),
+    // Unequal, tilted orbital planes preserve the reference's wide envelope.
+    // Partial white tracks and a long outgoing arc avoid a uniform wireframe cage.
+    const orbitPlanes = [
+      [-1.08, 0.15, -0.12, 2.84, 1, 0.02, 1, 0.48],
+      [0.62, 0.18, -0.6, 2.5, 1, 0.08, 0.96, 0.39],
+      [-1.17, 0.35, 0.6, 2.65, 1, 0.04, 0.93, 0.37],
+      [0.36, 0.4, 0.17, 2.3, 1, 0.13, 0.98, 0.29],
+      [-1.24, 0.5, -1.03, 2.77, 1, 0, 0.95, 0.33],
+      [0.42, 0.9, -0.2, 2.56, 1, 0.2, 0.92, 0.19],
+      [0.92, -0.3, -0.86, 2.55, 1, 0.03, 0.81, 0.2],
+      [1.06, 0.42, 0.88, 2.9, 1, 0.1, 0.95, 0.15],
+      [0.24, 0.62, -0.35, 2.36, 1, 0.02, 0.87, 0.25],
+      [0.75, 0.2, 0.14, 2.36, 1, 0.07, 0.94, 0.15],
+      [1.3, 0.2, -0.14, 3.1, 0.86, 0.2, 0.8, 0.08],
+    ];
+    orbitPlanes
+      .slice(0, mobile ? 6 : orbitPlanes.length)
+      .forEach(([rx, ry, rz, radius, eccentricity, start, end, opacity], i) => {
+        const group = new THREE.Group();
+        group.rotation.set(rx, ry, rz);
+        flightPaths.add(group);
+        const path: THREE.Vector3[] = [];
+        for (let j = 0; j <= 180; j++) {
+          const t = (start + (j / 180) * (end - start)) * Math.PI * 2;
+          path.push(
+            new THREE.Vector3(
+              Math.cos(t) * radius,
+              Math.sin(t) * radius * eccentricity,
+              0,
+            ),
+          );
+        }
+        line(
+          path,
+          i === 5 || i === 7 || i === 9 || i === 11 ? 0xb8ced4 : 0xff6200,
+          opacity,
+          group,
         );
-      }
-      line(
-        path,
-        i % 3 === 0 ? 0xb8ced4 : 0xff6200,
-        i % 3 === 0 ? 0.19 : 0.25 + random() * 0.16,
-        group,
-      );
-      const orbitNodes: number[] = [];
-      for (let j = 0; j < 3; j++) {
-        const t = (i * 0.57 + j * 2.16) % (Math.PI * 2);
-        orbitNodes.push(Math.cos(t) * radius, Math.sin(t) * radius, 0);
-      }
-      points(
-        orbitNodes,
-        i % 3 === 0 ? 13 : 27,
-        i % 3 === 0 ? 0.65 : 1,
-        0xffffff,
-        group,
-      );
-    }
+        const orbitNodes: number[] = [];
+        for (let j = 0; j < (i < 5 ? 5 : 2); j++) {
+          const t =
+            (start + (end - start) * ((0.17 + i * 0.137 + j * 0.223) % 1)) *
+            Math.PI *
+            2;
+          orbitNodes.push(
+            Math.cos(t) * radius,
+            Math.sin(t) * radius * eccentricity,
+            0,
+          );
+        }
+        points(
+          orbitNodes,
+          i === 5 || i === 7 || i === 9 || i === 11 ? 9 : i % 3 === 0 ? 45 : 32,
+          1,
+          0xffffff,
+          group,
+        );
+        const smallNodes: number[] = [];
+        for (let j = 0; j < (i < 5 ? 17 : 8); j++) {
+          const t = (start + (end - start) * random()) * Math.PI * 2;
+          smallNodes.push(
+            Math.cos(t) * radius,
+            Math.sin(t) * radius * eccentricity,
+            0,
+          );
+        }
+        points(smallNodes, 5.5, 0.8, 0xffffff, group);
+      });
+    const outgoing = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-1.35, 2.04, -0.7),
+      new THREE.Vector3(-2.8, 0.18, 0.05),
+      new THREE.Vector3(-2.46, -0.61, 0.35),
+      new THREE.Vector3(-1.42, -1.57, 0.7),
+      new THREE.Vector3(0.36, -2.45, 0.5),
+      new THREE.Vector3(2.27, -3.42, -0.2),
+    ]).getPoints(160);
+    line(outgoing, 0xff6a06, 0.4, rig);
+    points(
+      [outgoing[31], outgoing[70], outgoing[113]].flatMap((p) => p.toArray()),
+      44,
+      1,
+      0xffffff,
+      rig,
+    );
     const structure: number[] = [],
       structureColors: number[] = [];
-    for (let i = 0; i < 1200; i++) {
+    // Connected fragments follow the spherical shell, fading across its face.
+    // The brighter edge has layered silver structure without a solid white band.
+    for (let i = 0; i < 1150; i++) {
       const lat = random() * 155 - 70,
         lon = random() * 360 - 180,
-        r = 2.015 + Math.pow(random(), 4) * 0.055;
-      structure.push(
-        ...geographic(lat, lon, r).toArray(),
-        ...geographic(
-          lat + (random() - 0.5) * 3,
-          lon + (random() - 0.5) * 4,
+        r = 2.015 + Math.pow(random(), 4) * 0.11;
+      const driftLat = (random() - 0.5) * 1.9,
+        driftLon = (random() - 0.5) * 3.8;
+      let last = geographic(lat, lon, r);
+      const v = 0.06 + Math.pow(random(), 3) * 0.76;
+      for (let j = 1; j < 5; j++) {
+        const next = geographic(
+          lat + driftLat * j + random() * 0.65,
+          lon + driftLon * j + random() * 0.8,
           r,
-        ).toArray(),
-      );
-      const v = 0.08 + Math.pow(random(), 4) * 0.45;
-      for (let k = 0; k < 2; k++) structureColors.push(v * 0.8, v * 0.94, v);
+        );
+        structure.push(...last.toArray(), ...next.toArray());
+        for (let k = 0; k < 2; k++) structureColors.push(v * 0.84, v * 0.95, v);
+        last = next;
+      }
     }
     const sg = new THREE.BufferGeometry();
     sg.setAttribute("position", new THREE.Float32BufferAttribute(structure, 3));
@@ -467,10 +693,67 @@ export default function NetworkGlobe() {
     earth.add(
       new THREE.LineSegments(
         sg,
+        new THREE.ShaderMaterial({
+          vertexColors: true,
+          transparent: true,
+          depthWrite: false,
+          vertexShader: `varying vec3 vColor;varying float edge;void main(){vColor=color;vec3 n=normalize(normalMatrix*normalize(position));edge=pow(1.-abs(n.z),2.);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `varying vec3 vColor;varying float edge;void main(){gl_FragColor=vec4(vColor,(.035+edge*.7));}`,
+        }),
+      ),
+    );
+    // Batched near-field constellation: quiet white connections around the limb.
+    const constellation = Array.from({ length: mobile ? 130 : 380 }, () =>
+      geographic(
+        (Math.asin(random() * 2 - 1) * 180) / Math.PI,
+        random() * 360 - 180,
+        2.05 + Math.pow(random(), 1.7) * 0.86,
+      ),
+    );
+    const webPositions: number[] = [],
+      webColors: number[] = [];
+    constellation.forEach((a, i) => {
+      const nearest = constellation
+        .map((b, j) => ({ j, d: a.distanceToSquared(b) }))
+        .filter(({ j, d }) => j > i && d < 0.24)
+        .sort((a, b) => a.d - b.d)
+        .slice(0, 3);
+      nearest.forEach(({ j }) => {
+        webPositions.push(...a.toArray(), ...constellation[j].toArray());
+        const value = 0.025 + Math.pow(random(), 3) * 0.2;
+        for (let k = 0; k < 2; k++)
+          webColors.push(value * 0.86, value * 0.94, value);
+      });
+    });
+    const webGeometry = new THREE.BufferGeometry();
+    webGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(webPositions, 3),
+    );
+    webGeometry.setAttribute(
+      "color",
+      new THREE.Float32BufferAttribute(webColors, 3),
+    );
+    flightPaths.add(
+      new THREE.LineSegments(
+        webGeometry,
         new THREE.LineBasicMaterial({
           vertexColors: true,
           transparent: true,
-          opacity: 0.35,
+          opacity: 0.13,
+        }),
+      ),
+    );
+    const webNodes = new THREE.BufferGeometry().setFromPoints(constellation);
+    flightPaths.add(
+      new THREE.Points(
+        webNodes,
+        new THREE.PointsMaterial({
+          color: 0xb2c3c7,
+          size: 1.3,
+          sizeAttenuation: false,
+          transparent: true,
+          opacity: 0.7,
         }),
       ),
     );
@@ -507,7 +790,7 @@ export default function NetworkGlobe() {
         }),
       ),
     );
-    points(marker.position.toArray(), 60, 0.45);
+    points(marker.position.toArray(), 65, 0.18);
     const stars: number[] = [];
     for (let i = 0; i < 170; i++)
       stars.push((random() - 0.5) * 18, (random() - 0.5) * 10, -4);
@@ -541,11 +824,14 @@ export default function NetworkGlobe() {
         markWorld.project(camera);
         const x = (markWorld.x * 0.5 + 0.5) * width,
           y = (-markWorld.y * 0.5 + 0.5) * heightPx;
-        label.style.left = `${x - (width < 700 ? 100 : 118)}px`;
-        label.style.top = `${y - 16}px`;
+        label.style.left = `${x - (width < 700 ? 100 : 130)}px`;
+        label.style.top = `${y - 20}px`;
       }
       renderer.render(scene, camera);
       host.dataset.ready = "true";
+      host.dataset.drawCalls = String(renderer.info.render.calls);
+      host.dataset.triangles = String(renderer.info.render.triangles);
+      host.dataset.points = String(renderer.info.render.points);
     }
     function resize() {
       width = host.clientWidth;
@@ -561,19 +847,61 @@ export default function NetworkGlobe() {
       const small = width < 700,
         radius = small
           ? width * 0.5
-          : Math.min(width * 0.198, heightPx * 0.355);
+          : Math.min(width * 0.1795, heightPx * 0.319);
       rig.position.set(
         ((small ? 0.82 : 0.68) - 0.5) * 6 * aspect,
-        (0.5 - (small ? 0.79 : 0.476)) * 6,
+        (0.5 - (small ? 0.79 : 0.474)) * 6,
         0,
       );
       rig.scale.setScalar((radius * 3) / heightPx);
-      earth.rotation.set(0.222, (-Math.PI * 168) / 180, -0.1);
+      earth.rotation.set(0.206, (-Math.PI * 166.7) / 180, -0.1);
       flightPaths.rotation.set(0.16, 0.03, -0.08);
+      const moonLayout = [
+        [0.566, 0.153, 0.039],
+        [0.963, 0.34, 0.023],
+        [0.974, 0.739, 0.027],
+      ];
+      moons.forEach((moon, i) => {
+        const [x, y, r] = moonLayout[i];
+        moon.position.set((x - 0.5) * 6 * aspect, (0.5 - y) * 6, -3);
+        moon.scale.setScalar((width * r * 6) / heightPx);
+        moon.visible = !small;
+      });
       host.dataset.sphereDiameter = String(radius * 2);
       ready = true;
       requestRender();
     }
+    // One draw per coordinate space instead of one per route.
+    lineBatches.forEach((batch, parent) => {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(batch.positions, 3),
+      );
+      geometry.setAttribute(
+        "color",
+        new THREE.Float32BufferAttribute(batch.colors, 3),
+      );
+      geometry.setAttribute(
+        "routeAlpha",
+        new THREE.Float32BufferAttribute(batch.alphas, 1),
+      );
+      parent.add(
+        new THREE.LineSegments(
+          geometry,
+          new THREE.ShaderMaterial({
+            vertexColors: true,
+            transparent: true,
+            depthWrite: false,
+            vertexShader: `attribute float routeAlpha;varying vec3 vColor;varying float vAlpha;void main(){vColor=color;vAlpha=routeAlpha;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+            fragmentShader: `varying vec3 vColor;varying float vAlpha;void main(){gl_FragColor=vec4(vColor,vAlpha);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+        }`,
+          }),
+        ),
+      );
+    });
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(host);
@@ -588,6 +916,7 @@ export default function NetworkGlobe() {
       cancelAnimationFrame(scheduled);
       observer.disconnect();
       image.onload = null;
+      reliefImage.onload = null;
       renderer.domElement.removeEventListener("webglcontextlost", onLoss);
       const geometries = new Set<THREE.BufferGeometry>(),
         materials = new Set<THREE.Material>();

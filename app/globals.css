@@ -342,7 +342,8 @@ a:focus-visible {
   display: block;
 }
 .globe-fallback {
-  right: auto; bottom: auto;
+  right: auto;
+  bottom: auto;
   position: absolute;
   width: 48vw;
   aspect-ratio: 1;
@@ -483,7 +484,6 @@ a:focus-visible {
   bottom: 4%;
   font-size: 10px;
 }
-
 
 .registration-note {
   max-width: 310px;
@@ -754,7 +754,8 @@ a:focus-visible {
     max-width: 230px;
   }
   .globe-fallback {
-  right: auto; bottom: auto;
+    right: auto;
+    bottom: auto;
     width: 100vw;
     left: 16%;
     top: 48%;
@@ -848,6 +849,20 @@ a:focus-visible {
 }
 .system-label {
   background: #01040580;
+  background-image:
+    linear-gradient(#c2c6c7, #c2c6c7), linear-gradient(#c2c6c7, #c2c6c7),
+    linear-gradient(#c2c6c7, #c2c6c7), linear-gradient(#c2c6c7, #c2c6c7);
+  background-size:
+    9px 1px,
+    1px 9px,
+    9px 1px,
+    1px 9px;
+  background-position:
+    right top,
+    right top,
+    left bottom,
+    left bottom;
+  background-repeat: no-repeat;
   border-color: #9aa5a333;
   font-size: 13px;
 }
@@ -983,12 +998,38 @@ a:focus-visible {
 }
 .hero:after {
   opacity: 0.48;
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 4%,
-    #000 21%,
-    #000 91%,
-    transparent 100%
-  );
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent 8%,
+      #000 32%,
+      #000 63%,
+      #0008 83%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 4%,
+      #000 21%,
+      #000 91%,
+      transparent 100%
+    );
+  mask-composite: intersect;
 }
-
+@media (min-width: 1201px) {
+  .scan-label {
+    width: 124px;
+    top: 17.5%;
+    font-size: 14px;
+  }
+  .network-label {
+    width: 116px;
+    min-height: 64px;
+    top: 62.8%;
+    right: 6.85%;
+    font-size: 14px;
+  }
+  .hyderabad-label {
+    padding-inline: 15px;
+  }
+}
