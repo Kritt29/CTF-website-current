@@ -210,14 +210,14 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: 20px;
-  row-gap: 36px;
-  margin: 0 3.5% 34px;
+  row-gap: 0;
+  margin: 0 3.5% 80px;
   position: relative;
   z-index: 2;
 }
 .vector-domain {
   position: relative;
-  height: 350px;
+  height: 280px;
   min-width: 0;
   perspective: 1100px;
   --focus: 0;
@@ -303,7 +303,7 @@
   left: 18%;
   top: 0;
   width: 86%;
-  height: 100%;
+  height: 350px;
   pointer-events: none;
   transform: translate3d(var(--px), var(--py), calc(var(--focus) * 24px))
     scale(calc(0.985 + var(--focus) * 0.045));
@@ -499,11 +499,12 @@
   letter-spacing: 0.04em;
 }
 @media (min-width: 1700px) {
+  .vector-art { height: 390px; }
   .vector-domain {
-    height: 390px;
+    height: 315px;
   }
   .vectors-grid {
-    row-gap: 55px;
+    row-gap: 0;
   }
 }
 @media (max-width: 1250px) {
@@ -564,7 +565,7 @@
   }
   .vectors-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 38px;
+    row-gap: 12px;
   }
   .vector-domain {
     height: 340px;
@@ -634,7 +635,7 @@
   }
   .vectors-grid {
     grid-template-columns: 1fr;
-    row-gap: 35px;
+    row-gap: 12px;
     margin-inline: 5%;
   }
   .vector-domain {
@@ -707,3 +708,11 @@
     transform: none;
   }
 }
+
+.vector-reference-image { object-fit: contain; mix-blend-mode: screen; }
+
+.vector-art:has(.vector-reference-image) { mix-blend-mode: screen; }
+
+.vector-domain:has(.vector-reference-image) { mix-blend-mode: screen; }
+
+.vector-reference-image { mask-image: radial-gradient(ellipse at center, #000 45%, transparent 72%); }

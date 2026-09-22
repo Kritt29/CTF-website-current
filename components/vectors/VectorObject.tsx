@@ -12,6 +12,19 @@ const code = [
 ];
 export default function VectorObject({ kind }: { kind: string }) {
   const id = useId().replaceAll(":", "");
+  if (["crypto", "forensics", "osint"].includes(kind)) {
+    return (
+      <img
+        className={`vector-object vector-reference-image vector-${kind}`}
+        src={`/assets/vectors/${kind}-reference.webp`}
+        width={1448}
+        height={1086}
+        alt=""
+        aria-hidden="true"
+        decoding="async"
+      />
+    );
+  }
   const orange = "#ff6a13",
     silver = "#aebdc2";
   const panel = (
@@ -159,13 +172,13 @@ export default function VectorObject({ kind }: { kind: string }) {
             </g>
           ))}
           <g transform="translate(151 79)" fontFamily="monospace" fill={silver}>
+            <path d="M-3 28h209M95 28v136" stroke="#d9e4e7" strokeWidth=".45" opacity=".38"/>
+            <rect x="-8" y="5" width="5" height="8" rx="1" fill={orange}/>
             <text x="0" y="18" fontSize="11" fill={orange}>
               https://
             </text>
             {["INSPECT", "EXPLOIT", "BYPASS", "GAIN ACCESS"].map((t, i) => (
-              <text key={t} x="0" y={48 + i * 26} fontSize="11">
-                {t}
-              </text>
+              <g key={t}><rect x="-6" y={41+i*26} width="4" height="5" fill="none" stroke={silver} strokeWidth=".5"/><text x="3" y={48+i*26} fontSize="10">{t}</text></g>
             ))}
             {Array.from({ length: 16 }, (_, i) => (
               <path
@@ -297,17 +310,17 @@ export default function VectorObject({ kind }: { kind: string }) {
       {kind === "pwn" && (
         <g>
           {[0, 1, 2, 3, 4].map((i) => {
-            const y = 34 + i * 37;
+            const y = 34 + i * 37, half=[91,123,109,134,115][i];
             return (
               <g key={i}>
                 <path
-                  d={`M235 ${y}L360 ${y + 41}L234 ${y + 93}L107 ${y + 43}Z`}
+                  d={`M235 ${y}L${235+half} ${y + 41}L234 ${y + 93}L${235-half} ${y + 43}Z`}
                   fill={`url(#${id}glass)`}
                   stroke={silver}
                   strokeWidth=".7"
                 />
                 <path
-                  d={`M107 ${y + 43}v23l127 50 126-53v-22M234 ${y + 93}v23`}
+                  d={`M${235-half} ${y + 43}v23l${half-1} 50 ${half+1}-53v-22M234 ${y + 93}v23`}
                   fill="none"
                   stroke={silver}
                   opacity=".45"
@@ -341,7 +354,7 @@ export default function VectorObject({ kind }: { kind: string }) {
             fill="#a52a02"
             stroke="#ffe4ce"
           />
-          <g transform="translate(205 155) scale(1 .43) rotate(-22)">
+          <g transform="translate(234 162) scale(1 .43) rotate(-22)">
             <rect
               x="-36"
               y="-30"
@@ -415,6 +428,7 @@ export default function VectorObject({ kind }: { kind: string }) {
               stroke={orange}
               strokeWidth=".7"
             />
+            <text x="0" y="16" fill="#afbec5" fontSize="4.5">DISASSEMBLY / .TEXT / x86_64</text>
             {code.map((t, i) => (
               <text
                 key={t}
@@ -433,6 +447,7 @@ export default function VectorObject({ kind }: { kind: string }) {
                 opacity=".5"
               />
             ))}
+            <g opacity=".62" fill="#c2cfd5" fontSize="4">{['RAX 00000001','RBP 7FFF2A10','RSP 7FFF29F0','RIP 004012F0'].map((t,i)=><text key={t} x="89" y={124+i*9}>{t}</text>)}</g>
           </g>
           <path d="M76 230H350M89 243H331" stroke={orange} opacity=".5" />
         </g>
