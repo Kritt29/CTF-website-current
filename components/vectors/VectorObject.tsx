@@ -40,7 +40,7 @@ export default function VectorObject({ kind }: { kind: string }) {
         height={h}
         rx="2"
         fill={`url(#${id}glass)`}
-        stroke={active ? orange : silver}
+        stroke={active ? orange : "#d3e0e4"}
         strokeWidth=".8"
       />
       <path
@@ -48,6 +48,22 @@ export default function VectorObject({ kind }: { kind: string }) {
         stroke={active ? orange : silver}
         opacity=".6"
       />
+      <path
+        d={`M${x + 1} ${y + h - 1}V${y + 1}H${x + w - 1}`}
+        fill="none"
+        stroke="#eff9ff"
+        strokeWidth=".5"
+        opacity=".65"
+      />
+      {active && (
+        <path
+          d={`M${x + w} ${y}v${h}H${x}`}
+          fill="none"
+          stroke={orange}
+          strokeWidth="1.2"
+          filter={`url(#${id}glow)`}
+        />
+      )}
       {[0, 1, 2].map((i) => (
         <circle
           key={i}
@@ -59,6 +75,51 @@ export default function VectorObject({ kind }: { kind: string }) {
       ))}
     </g>
   );
+  const microcode = (x: number, y: number, rows: number, width = 85) => (
+    <g fontFamily="monospace" fontSize="3.7" fill="#b8c8cd" opacity=".58">
+      {Array.from({ length: rows }, (_, i) => (
+        <text key={i} x={x} y={y + i * 6}>
+          {[
+            "0x004012f0  48 89 e5   mov rbp,rsp",
+            "00000110  e8 4f 00   call 0x401000",
+            "8b 45 fc  83 f8 00   cmp eax,0",
+            "c7 45 f8  00 00 00   memory.read",
+            "48 8d 05  74 0a 90   test rax,rax",
+          ][i % 5].slice(0, Math.floor(width / 2.2))}
+        </text>
+      ))}
+    </g>
+  );
+  const photo = (x: number, y: number, w: number, h: number) => (
+    <svg
+      x={x}
+      y={y}
+      width={w}
+      height={h}
+      viewBox="0 0 120 78"
+      preserveAspectRatio="none"
+    >
+      <rect width="120" height="78" fill="#758187" />
+      <image
+        href="/assets/atmosphere.png"
+        width="120"
+        height="78"
+        preserveAspectRatio="xMidYMid slice"
+        style={{ filter: "grayscale(1) brightness(2.4) contrast(1.4)" }}
+      />
+      <path
+        d="M0 73L22 41 36 57 61 25 85 57 105 45 120 65V78H0Z"
+        fill="#071014"
+        opacity=".7"
+      />
+      <path
+        d="M22 41l14 16 25-32 24 32"
+        fill="none"
+        stroke="#cdd6d9"
+        strokeWidth=".6"
+      />
+    </svg>
+  );
   return (
     <svg
       className={`vector-object vector-${kind}`}
@@ -67,19 +128,19 @@ export default function VectorObject({ kind }: { kind: string }) {
     >
       <defs>
         <linearGradient id={`${id}glass`} x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#56646c" stopOpacity=".36" />
-          <stop offset=".45" stopColor="#030607" stopOpacity=".92" />
-          <stop offset="1" stopColor="#20282c" stopOpacity=".5" />
+          <stop stopColor="#56646c" stopOpacity=".19" />
+          <stop offset=".45" stopColor="#030607" stopOpacity=".52" />
+          <stop offset="1" stopColor="#20282c" stopOpacity=".2" />
         </linearGradient>
         <radialGradient id={`${id}light`}>
           <stop stopColor={orange} stopOpacity=".28" />
           <stop offset="1" stopColor={orange} stopOpacity="0" />
         </radialGradient>
         <radialGradient id={`${id}metal`} cx="35%" cy="25%">
-          <stop stopColor="#536066" />
+          <stop stopColor="#242e33" />
           <stop offset=".25" stopColor="#141b1e" />
           <stop offset=".7" stopColor="#020405" />
-          <stop offset="1" stopColor="#344148" />
+          <stop offset="1" stopColor="#080c0e" />
         </radialGradient>
         <filter id={`${id}glow`} x="-100%" y="-100%" width="300%" height="300%">
           <feGaussianBlur stdDeviation="3" />
@@ -91,9 +152,12 @@ export default function VectorObject({ kind }: { kind: string }) {
       <ellipse cx="235" cy="205" rx="170" ry="100" fill={`url(#${id}light)`} />
       {kind === "web" && (
         <g transform="translate(25 53) skewY(-13)">
-          {[0, 1, 2, 3, 4].map((i) =>
-            panel(65 + i * 19, 9 + i * 17, 220, 178, i, i === 4),
-          )}
+          {[0, 1, 2, 3, 4].map((i) => (
+            <g key={i}>
+              {panel(65 + i * 19, 9 + i * 17, 220, 178, i, i === 4)}
+              {microcode(180 + i * 19, 47 + i * 17, 22, 95)}
+            </g>
+          ))}
           <g transform="translate(151 79)" fontFamily="monospace" fill={silver}>
             <text x="0" y="18" fontSize="11" fill={orange}>
               https://
@@ -117,7 +181,7 @@ export default function VectorObject({ kind }: { kind: string }) {
       )}
       {kind === "crypto" && (
         <g transform="translate(229 162) rotate(-17) skewY(7) scale(.88 1)">
-          {[22, 16, 10].map((x, i) => (
+          {[42, 35, 28, 21, 14, 7].map((x, i) => (
             <circle
               key={i}
               cx={x}
@@ -127,6 +191,18 @@ export default function VectorObject({ kind }: { kind: string }) {
               strokeWidth=".8"
             />
           ))}
+          {Array.from({ length: 30 }, (_, i) => {
+            const a = (i / 30) * Math.PI * 2;
+            return (
+              <path
+                key={i}
+                d={`M${sine(a) * 132} ${cosine(a) * 132}l42 0`}
+                stroke={i % 3 === 0 ? "#e6eff1" : silver}
+                strokeWidth=".6"
+                opacity=".6"
+              />
+            );
+          })}
           <circle r="132" fill={`url(#${id}metal)`} stroke="#d7dede" />
           {[126, 119, 97, 90, 69, 62, 39].map((r, i) => (
             <circle
@@ -147,6 +223,33 @@ export default function VectorObject({ kind }: { kind: string }) {
                     key={i}
                     transform={`translate(${sine(a) * r} ${-cosine(a) * r}) rotate(${(i / 26) * 360})`}
                   >
+                    <rect
+                      x="-8"
+                      y="-9"
+                      width="16"
+                      height="18"
+                      rx="2"
+                      fill={
+                        (i === 6 || i === 7) && row === 0
+                          ? "#c53e05"
+                          : "#070a0c"
+                      }
+                      stroke={
+                        (i === 6 || i === 7) && row === 0 ? orange : "#a0b3bd"
+                      }
+                      strokeWidth=".5"
+                      opacity=".8"
+                    />
+                    {(i === 6 || i === 7) && row === 0 && (
+                      <rect
+                        x="-8"
+                        y="-9"
+                        width="16"
+                        height="18"
+                        fill={orange}
+                        filter={`url(#${id}glow)`}
+                      />
+                    )}
                     <text
                       textAnchor="middle"
                       dominantBaseline="central"
@@ -194,7 +297,7 @@ export default function VectorObject({ kind }: { kind: string }) {
       {kind === "pwn" && (
         <g>
           {[0, 1, 2, 3, 4].map((i) => {
-            const y = 45 + i * 43;
+            const y = 34 + i * 37;
             return (
               <g key={i}>
                 <path
@@ -220,6 +323,14 @@ export default function VectorObject({ kind }: { kind: string }) {
               </g>
             );
           })}
+          <g stroke="#c9d7dd" strokeWidth=".55" opacity=".5">
+            {[0, 1, 2, 3].map((i) => (
+              <path
+                key={i}
+                d={`M${134 + i * 59} ${58 + Math.abs(i - 1.5) * 13}v187M${134 + i * 59} 218l95-40`}
+              />
+            ))}
+          </g>
           <path
             d="M235 137l63 22-65 27-61-24z"
             fill={orange}
@@ -227,10 +338,42 @@ export default function VectorObject({ kind }: { kind: string }) {
           />
           <path
             d="M235 137l63 22-65 27-61-24z"
-            fill="#ff812d"
+            fill="#a52a02"
             stroke="#ffe4ce"
           />
-          <g transform="translate(194 85) skewY(-14)">
+          <g transform="translate(205 155) scale(1 .43) rotate(-22)">
+            <rect
+              x="-36"
+              y="-30"
+              width="78"
+              height="65"
+              fill="#ff6818"
+              stroke="#ffe9d3"
+            />
+            {Array.from({ length: 11 }, (_, i) => (
+              <g key={i}>
+                <path
+                  d={`M${-31 + i * 7} -30v-20m0 85v20M-36 ${-25 + i * 5}h-20m98 0h20`}
+                  stroke="#ffa45f"
+                  strokeWidth="1.4"
+                />
+                <path
+                  d={`M${-25 + i * 6} -20v40`}
+                  stroke="#ffdfbe"
+                  opacity=".6"
+                />
+              </g>
+            ))}
+            <rect
+              x="-15"
+              y="-11"
+              width="33"
+              height="28"
+              fill="#fff1dc"
+              filter={`url(#${id}glow)`}
+            />
+          </g>
+          <g transform="translate(194 67) skewY(-14)">
             {panel(0, 0, 110, 65, 0, true)}
             <text
               x="11"
@@ -255,10 +398,23 @@ export default function VectorObject({ kind }: { kind: string }) {
       )}
       {kind === "reverse" && (
         <g transform="translate(20 29) skewY(12)">
-          {[0, 1, 2, 3].map((i) =>
-            panel(73 + i * 24, 7 - i * 13, 206, 213, i, i === 2),
-          )}
+          {[0, 1, 2, 3].map((i) => (
+            <g key={i}>
+              {panel(73 + i * 24, 7 - i * 13, 206, 213, i, i === 2)}
+              {microcode(81 + i * 24, 36 - i * 13, 27, 180)}
+            </g>
+          ))}
           <g transform="translate(155 17)" fontFamily="monospace">
+            <rect
+              x="-9"
+              y="8"
+              width="147"
+              height="169"
+              fill="#030607"
+              fillOpacity=".94"
+              stroke={orange}
+              strokeWidth=".7"
+            />
             {code.map((t, i) => (
               <text
                 key={t}
@@ -283,57 +439,98 @@ export default function VectorObject({ kind }: { kind: string }) {
       )}
       {kind === "forensics" && (
         <g>
-          {Array.from({ length: 19 }, (_, i) => {
-            const a = i * 2.4,
-              r = 45 + i * 4,
-              x = 234 + cosine(a) * r,
-              y = 160 + sine(a) * r;
+          {/* A three-dimensional evidence volume, not a radial shard/fan symbol. */}
+          <g fill="none" stroke="#b9cbd2" strokeWidth=".6" opacity=".55">
+            <path d="M183 62l68-27 61 41v139l-66 52-70-46zM183 62l63 42 66-28M246 104v163M176 221l70-45 66 39" />
+            {[0, 1, 2, 3].map((i) => (
+              <path key={i} d={`M180 ${87 + i * 35}l66 40 66-38`} />
+            ))}
+          </g>
+          {Array.from({ length: 26 }, (_, i) => {
+            const x = 203 + ((i * 23) % 72),
+              y = 76 + ((i * 37) % 139),
+              z = 4 + (i % 4) * 3;
             return (
               <g key={i}>
                 <path
-                  d={`M234 161L${x} ${y}l${12 + (i % 3) * 8} -25 14 32Z`}
-                  fill={`url(#${id}glass)`}
-                  stroke={i % 3 === 0 ? orange : silver}
-                  strokeWidth=".7"
+                  d={`M${x} ${y}l${z} -4 ${z} 5v${z + 4}l-${z} 5-${z}-5z`}
+                  fill={i % 3 === 0 ? orange : "#441608"}
+                  stroke={i % 3 === 0 ? "#ffb66a" : "#bb490f"}
+                  strokeWidth=".5"
                 />
-                <rect
-                  x={x}
-                  y={y}
-                  width={5 + (i % 3) * 3}
-                  height={7 + (i % 4) * 4}
-                  fill={orange}
-                  opacity={i % 2 ? 0.8 : 0.25}
+                <path
+                  d={`M${x + z} ${y + 1}v${z + 9}`}
+                  stroke="#ffb46c"
+                  strokeWidth=".6"
                 />
               </g>
             );
           })}
-          <g transform="translate(95 114) rotate(-17)">
-            {panel(0, 0, 105, 132, 0)}
-            {Array.from({ length: 12 }, (_, i) => (
+          {[
+            [126, 163],
+            [305, 72],
+            [344, 221],
+            [177, 273],
+            [174, 45],
+            [275, 277],
+          ].map(([x, y], i) => (
+            <g key={i}>
               <path
-                key={i}
-                d={`M${15 + i * 2} 108 C${-10 + i * 3} ${20 + i * 3},${97 - i * 3} ${12 + i * 3},${89 - i * 2} 91 C${82 - i * 2} 116,${45 + i} 119,${52 + i} 75`}
-                fill="none"
-                stroke="#d4d8d6"
-                strokeWidth=".8"
+                d={`M245 160L${x} ${y}`}
+                stroke={orange}
+                strokeWidth=".7"
+                opacity=".7"
               />
-            ))}
-          </g>
-          <g transform="translate(277 47) rotate(12)">
-            {panel(0, 0, 91, 99, 1)}
-            <path d="M7 81L32 43 49 70 64 51 83 79Z" fill="#66767e" />
-            <circle cx="66" cy="32" r="8" fill="#aab6bd" />
-          </g>
-          <g transform="translate(287 187) rotate(21)">
-            {panel(0, 0, 108, 95, 2)}
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <path
-                key={i}
-                d={`M11 ${32 + i * 9}h${i % 2 ? 58 : 80}`}
-                stroke={silver}
-                opacity=".6"
+              <circle cx={x} cy={y} r="2" fill="#ffe2c1" />
+              <circle
+                cx={x}
+                cy={y}
+                r="4"
+                fill={orange}
+                filter={`url(#${id}glow)`}
               />
-            ))}
+            </g>
+          ))}
+          <g transform="translate(91 133) rotate(-19) skewY(-6)">
+            {panel(0, 0, 101, 115, 0)}
+            <text x="8" y="13" fill="#c9d4d9" fontSize="5">
+              EVIDENCE / 001
+            </text>
+            {Array.from({ length: 15 }, (_, i) => {
+              const r = 9 + i * 2;
+              return (
+                <path
+                  key={i}
+                  d={`M${50 - r * 0.65} ${63 + r * 0.95}C${50 - r * 1.1} ${63 + r * 0.15},${50 - r * 0.9} ${63 - r},50 ${63 - r}C${50 + r} ${63 - r},${50 + r * 0.9} ${63 + r * 0.6},${50 + r * 0.3} ${63 + r}C${50 - r * 0.1} ${63 + r * 1.25},${50 - r * 0.5} ${63 + r * 0.6},${50 - r * 0.23} ${63 + r * 0.22}`}
+                  fill="none"
+                  stroke="#d9e2df"
+                  strokeWidth=".75"
+                />
+              );
+            })}
+            <path d="M5 107h90" stroke="#b6c7cd" strokeWidth=".5" />
+          </g>
+          <g transform="translate(286 38) skewY(-8) rotate(6)">
+            {panel(0, 0, 83, 98, 1)}
+            {photo(5, 24, 73, 63)}
+            <path d="M6 91h50" stroke="#dde4e8" strokeWidth=".8" />
+          </g>
+          <g transform="translate(285 188) rotate(19) skewX(7)">
+            {panel(0, 0, 103, 90, 2)}
+            {photo(5, 24, 55, 47)}
+            {microcode(64, 30, 9, 35)}
+          </g>
+          <g transform="translate(168 245) rotate(-24)">
+            {panel(0, 0, 75, 58, 3)}
+            {microcode(5, 27, 5, 65)}
+          </g>
+          <g transform="translate(162 35) rotate(-27)">
+            {panel(0, 0, 41, 59, 4)}
+            {microcode(4, 25, 5, 33)}
+          </g>
+          <g transform="translate(255 239) rotate(27)">
+            {panel(0, 0, 48, 57, 5)}
+            {microcode(5, 27, 4, 37)}
           </g>
         </g>
       )}
@@ -353,9 +550,23 @@ export default function VectorObject({ kind }: { kind: string }) {
             width="267"
             height="240"
             clipPath={`url(#${id}earth)`}
-            opacity=".21"
+            opacity=".32"
             style={{ filter: "grayscale(1) contrast(2)" }}
           />
+          <g fill="none" stroke="#b7cbd4" strokeWidth=".5" opacity=".3">
+            {[28, 61, 88].map((r) => (
+              <ellipse key={r} cx="237" cy="157" rx={r} ry="110" />
+            ))}
+            {[-65, -30, 10, 50, 80].map((y) => (
+              <ellipse
+                key={y}
+                cx="237"
+                cy={157 + y}
+                rx={Math.sqrt(12100 - y * y).toFixed(3)}
+                ry="15"
+              />
+            ))}
+          </g>
           {[0, 1, 2, 3].map((i) => (
             <ellipse
               key={i}
@@ -398,16 +609,26 @@ export default function VectorObject({ kind }: { kind: string }) {
           ].map(([x, y, a], i) => (
             <g key={i} transform={`translate(${x} ${y}) rotate(${a})`}>
               {panel(-30, -25, 73, 55, i)}
+              <path
+                d="M-29 29h71"
+                stroke="#e0e7ea"
+                opacity=".7"
+                strokeWidth=".7"
+              />
               {i % 2 === 0 ? (
                 <>
                   <circle cx="-12" cy="-4" r="7" fill="#b2bdc0" />
                   <path d="M-23 20q0-24 22 0Z" fill="#7b8a91" />
                 </>
               ) : (
-                <path
-                  d="M-23 20V-2h8v22h5V-9H1v29h5V-1h9v21h9V-15h9v35"
-                  fill="#87949a"
-                />
+                <>
+                  {photo(-25, -3, 63, 25)}
+                  <path
+                    d="M-25 22V4h5v18h4V-1h7v23h3V8h4v14h8V-5h5v27h5V3h8v19"
+                    fill="#061015"
+                  />
+                  <path d="M-25 24h63" stroke="#cbd8dd" />
+                </>
               )}
               <path d="M3 1h29M3 8h21M3 15h26" stroke={silver} opacity=".35" />
             </g>
