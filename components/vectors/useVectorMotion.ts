@@ -1,97 +1,107 @@
-import { useLayoutEffect, type RefObject } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { phase } from "../hero/motion/state";
-gsap.registerPlugin(ScrollTrigger);
+import { useEffect, type RefObject } from "react";
+/** A Page 02 clock. Never refreshes or touches the Hero's GSAP state. */
 export function useVectorMotion(ref: RefObject<HTMLDivElement | null>) {
-  useLayoutEffect(() => {
+  useEffect(() => {
     const root = ref.current!,
       items = [...root.querySelectorAll<HTMLElement>(".vector-domain")];
-    const media = gsap.matchMedia();
-    media.add(
-      {
-        desktop: "(min-width: 1001px)",
-        small: "(max-width: 1000px)",
-        reduced: "(prefers-reduced-motion: reduce)",
-      },
-      (ctx) => {
-        const reduced = !!ctx.conditions?.reduced,
-          desktop = !!ctx.conditions?.desktop;
-        if (reduced) {
-          root.dataset.motion = "reduced";
-          return;
-        }
-        root.dataset.motion = desktop ? "desktop" : "mobile";
-        let target = 0,
-          current = 0,
-          visible = false,
-          last = performance.now(),
-          px = 0,
-          py = 0,
-          tx = 0,
-          ty = 0;
-        const trigger = ScrollTrigger.create({
-          trigger: root,
-          start: desktop ? "top top" : "top 65%",
-          end: desktop ? () => `+=${innerHeight * 0.9}` : "bottom bottom",
-          onUpdate: (self) => {
-            target = self.progress;
-          },
-          onRefresh: (self) => {
-            target = self.progress;
-            current = target;
-          },
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0,
+      visible = false,
+      last = 0,
+      active = 0,
+      target = 0,
+      px = 0,
+      py = 0,
+      tx = 0,
+      ty = 0,
+      hover = -1;
+    const measure = () => {
+      const r = root.getBoundingClientRect();
+      target = Math.max(
+        0,
+        Math.min(
+          5,
+          ((innerHeight * 0.25 - r.top) / (r.height - innerHeight * 0.5)) * 5,
+        ),
+      );
+    };
+    const render = (now: number) => {
+      frame = 0;
+      if (!visible || document.hidden || preference.matches) return;
+      const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+      last = now;
+      active += (target - active) * (1 - Math.exp(-dt / 0.12));
+      px += (tx - px) * (1 - Math.exp(-dt / 0.23));
+      py += (ty - py) * (1 - Math.exp(-dt / 0.23));
+      const selected = hover < 0 ? active : hover;
+      root.dataset.active = String(Math.round(selected));
+      items.forEach((item, i) => {
+        const f = Math.max(0, 1 - Math.abs(selected - i));
+        item.style.setProperty("--focus", String(f));
+        item.style.setProperty("--px", `${px * f * 5}px`);
+        item.style.setProperty("--py", `${py * f * 3}px`);
+      });
+      frame = requestAnimationFrame(render);
+    };
+    const wake = () => {
+      if (!frame && visible && !preference.matches && !document.hidden) {
+        last = performance.now();
+        frame = requestAnimationFrame(render);
+      }
+    };
+    const scroll = () => {
+      measure();
+      wake();
+    };
+    const pointer = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      const item = (e.target as Element).closest<HTMLElement>(".vector-domain");
+      hover = item ? items.indexOf(item) : -1;
+      const r = item?.getBoundingClientRect();
+      if (r) {
+        tx = (e.clientX - r.left) / r.width - 0.5;
+        ty = (e.clientY - r.top) / r.height - 0.5;
+      }
+      wake();
+    };
+    const leave = () => {
+      hover = -1;
+      tx = ty = 0;
+    };
+    const change = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      root.dataset.motion = preference.matches ? "reduced" : "local";
+      if (preference.matches)
+        items.forEach((e) => {
+          e.style.removeProperty("--focus");
+          e.style.removeProperty("--px");
+          e.style.removeProperty("--py");
         });
-        const observer = new IntersectionObserver(([e]) => {
-          visible = e.isIntersecting;
-          last = performance.now();
-        });
-        observer.observe(root);
-        const pointer = (e: PointerEvent) => {
-          if (e.pointerType === "touch") return;
-          const r = root.getBoundingClientRect();
-          tx = (e.clientX / r.width - 0.5) * 2;
-          ty =
-            ((e.clientY - r.top) / Math.min(r.height, innerHeight) - 0.5) * 2;
-        };
-        const leave = () => {
-          tx = ty = 0;
-        };
-        root.addEventListener("pointermove", pointer, { passive: true });
-        root.addEventListener("pointerleave", leave);
-        const tick = () => {
-          const now = performance.now(),
-            dt = Math.min(0.05, (now - last) / 1000);
-          last = now;
-          if (!visible || document.hidden) return;
-          current += (target - current) * (1 - Math.exp(-dt / 0.1));
-          px += (tx - px) * (1 - Math.exp(-dt / 0.25));
-          py += (ty - py) * (1 - Math.exp(-dt / 0.25));
-          const index = current * 5;
-          root.dataset.active = String(Math.round(index));
-          items.forEach((item, i) => {
-            const focus = 1 - phase(0, 1.15, Math.abs(index - i));
-            item.style.setProperty("--focus", String(focus));
-            item.style.setProperty("--px", `${px * focus * 5}px`);
-            item.style.setProperty("--py", `${py * focus * 3}px`);
-          });
-          root.style.setProperty("--sequence", String(current));
-        };
-        gsap.ticker.add(tick);
-        return () => {
-          trigger.kill();
-          observer.disconnect();
-          gsap.ticker.remove(tick);
-          root.removeEventListener("pointermove", pointer);
-          root.removeEventListener("pointerleave", leave);
-          items.forEach((e) => {
-            e.style.removeProperty("--focus");
-            e.style.removeProperty("--px");
-            e.style.removeProperty("--py");
-          });
-        };
-      },
-    );
-    return () => media.revert();
+      else wake();
+    };
+    const observer = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      measure();
+      wake();
+    });
+    observer.observe(root);
+    root.addEventListener("pointermove", pointer, { passive: true });
+    root.addEventListener("pointerleave", leave);
+    window.addEventListener("scroll", scroll, { passive: true });
+    window.addEventListener("resize", scroll, { passive: true });
+    document.addEventListener("visibilitychange", wake);
+    preference.addEventListener("change", change);
+    change();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      root.removeEventListener("pointermove", pointer);
+      root.removeEventListener("pointerleave", leave);
+      window.removeEventListener("scroll", scroll);
+      window.removeEventListener("resize", scroll);
+      document.removeEventListener("visibilitychange", wake);
+      preference.removeEventListener("change", change);
+    };
   }, [ref]);
 }

@@ -1,0 +1,31 @@
+{
+  "commit": "12922b4dbb4bd504fb0dae8dbaf87fdc960a7014",
+  "files": {
+    "app/globals.css": "00d5816ccc24f42bf96905e8a45ea1585ca2e75ddbfbba99865e43e208c15be2",
+    "app/layout.tsx": "665295d88301d655ff17db9c460d1cf5aa54523541b1499ea70b524f03d92731",
+    "components/hero/HeroScreen.tsx": "a12208f2bd765df3c31054d65dce2bf36ab76d928e38b08578a6cdef531e5b4c",
+    "components/hero/NetworkGlobe.tsx": "34369d6216f00cca52689fe5176fe3b2b682e290926235c8295f8de66b557347",
+    "components/hero/content.ts": "2f53c89efdd23389a25ca2be979a9a45884506f20f8adbef2c3268ed7eb03452",
+    "components/hero/globeGeometry.ts": "88f4f57bfd8a69c52eaedab14e0b4f9a3c455b588d88642162be45c1a27fb6ec",
+    "components/hero/motion/SignalBridge.tsx": "f5ab8c4e00aa4ceb12f71f4c92d5d9b1d509cd59a5ef49dcd8ee4a67cb7a15e3",
+    "components/hero/motion/bridge.ts": "0400b905e2482fc984041ce3294a6ab2008e9a6fc1fe4cb729889e01a558f786",
+    "components/hero/motion/globeMotion.ts": "4c1e380e04b39972e76cb42a78a32656e10ba9afed08ebeb97c96edf2621b4ff",
+    "components/hero/motion/intro.ts": "bad9d0529177d984b8ee13a2b0df40e22fb327e624ac39b4d77ffd3d6dcda167",
+    "components/hero/motion/scroll.ts": "ede79d6595ec41662d416d289dfb5ed6e4ebb7c4958c5e4c29bf34e0e00b1a8b",
+    "components/hero/motion/state.ts": "eef387a4ab834a3315e8085a7432720490a4299a71470a0a4af610368bd7f912",
+    "components/hero/motion/useHeroMotion.ts": "8fde87e8b413af134bf2355c3221a0ec8321f2975c94a356dccb8f04f64c7388",
+    "public/assets/ArchivoBlack-OFL.txt": "3173acd82f8c6159b5b1037b539fcbd4edff68e65c2ea8b9412b5a5ca97b08ff",
+    "public/assets/ArchivoBlack-Regular.ttf": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "public/assets/atmosphere.png": "0d3d8d315b9b3c79e1cc44bf4a26d2b392ea5cc1ed5b1f061250666b5841234d",
+    "public/assets/ddc-logo-reference.png": "b770a38371337794a18d26e7d06a8f0aee4fb804dd6d6440e524221566176218",
+    "public/assets/distressed-metal.png": "3a329e307f4c9f2e4fffc6a1093146befb54419322f6557f3dc93ba9c447e0ca",
+    "public/assets/earth-day.jpg": "228deba2e4b600146bdcb6cfa359b8ead6aacc2b1c13550a29cd82824cfa1c01",
+    "public/assets/earth-lights.png": "3cc6972d1d5b6310f33ea6ef4cc14a38f1dd141a91d26888206889327d983d7b",
+    "public/assets/earth-night.jpg": "355ab23dd1323315b393d7b91dd2d7ee223a1cbaaba2b48dc72ba90d371ced24",
+    "public/assets/earth-topology.png": "839b12da2e4dd346b256cebae72e10c479a102c8980a22084c41275e4b9a0e12",
+    "public/assets/land.geojson": "e874b27a51d146452be360cafb3cc50c86001074a67d534113e6534682f9826b",
+    "public/assets/metal.svg": "a5e85521047f9b9dc5dc8084147971c6cc40409c347da74ae30692e7b91440c7",
+    "public/assets/moon-surface.jpg": "fcb0f1f5548e6e18d40063dd55c6aacd3daedf2407b181dab85b61e22bf9fe57",
+    "public/favicon.svg": "07ab1557c11f9116d4f35a8335259fc91c4d2ec653a8c2ba86dbb5435295c4ba"
+  }
+}

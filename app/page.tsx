@@ -1,10 +1,10 @@
 import HeroScreen from "@/components/hero/HeroScreen";
-import ChallengeVectors from "@/components/vectors/ChallengeVectors";
+import Page02Mount from "@/components/vectors/Page02Mount";
 export default function Home() {
   return (
     <>
       <HeroScreen />
-      <ChallengeVectors />
+      <Page02Mount />
     </>
   );
 }
