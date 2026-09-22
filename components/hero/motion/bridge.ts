@@ -21,12 +21,8 @@ export function createSignalBridge(root: HTMLElement) {
       c2y = height * 0.58;
     const endX = width * 0.5,
       endY = height * 1.12;
-    const d = `M ${x} ${y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${endX} ${endY}`;
-    paths.forEach((path) => {
-      path.setAttribute("d", d);
-      path.style.strokeDashoffset = String(1 - travel);
-    });
-    // Cubic evaluation avoids measuring an SVG path on every frame.
+    // Subdivide the cubic so its visible endpoint and moving light coincide.
+    // A dash-length reveal uses arc length, which differs from the curve's t.
     const u = 1 - travel;
     const hx =
       u * u * u * x +
@@ -38,6 +34,15 @@ export function createSignalBridge(root: HTMLElement) {
       3 * u * u * travel * c1y +
       3 * u * travel * travel * c2y +
       travel ** 3 * endY;
+    const aX = u * x + travel * c1x;
+    const aY = u * y + travel * c1y;
+    const bX = u * u * x + 2 * u * travel * c1x + travel * travel * c2x;
+    const bY = u * u * y + 2 * u * travel * c1y + travel * travel * c2y;
+    const d = `M ${x} ${y} C ${aX} ${aY}, ${bX} ${bY}, ${hx} ${hy}`;
+    paths.forEach((path) => {
+      path.setAttribute("d", d);
+      path.style.strokeDashoffset = "0";
+    });
     heads.forEach((head) => {
       head.setAttribute("cx", String(hx));
       head.setAttribute("cy", String(hy));

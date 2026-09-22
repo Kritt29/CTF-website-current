@@ -105,7 +105,10 @@ export default function NetworkGlobe({
     const requestRender = () => {
       if (disposed || !ready) return;
       cancelAnimationFrame(scheduled);
-      scheduled = requestAnimationFrame(render);
+      scheduled = requestAnimationFrame(() => {
+        if (motion.current.renderFrame) motion.current.renderFrame(motion.current);
+        else render();
+      });
     };
     const textures: THREE.Texture[] = [];
     const loader = new THREE.TextureLoader();
