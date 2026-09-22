@@ -6,12 +6,17 @@
   font-display: swap;
 }
 :root {
+  scrollbar-width: none;
   --ink: #030607;
   --paper: #e9e9e4;
   --muted: #9299a3;
   --orange: #ff6509;
   --line: rgba(211, 220, 221, 0.19);
   color-scheme: dark;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 * {
   box-sizing: border-box;
@@ -1031,5 +1036,138 @@ a:focus-visible {
   }
   .hyderabad-label {
     padding-inline: 15px;
+  }
+}
+
+/* Motion lives outside the locked artwork's layout. Native sticky keeps wheel,
+   touch and keyboard scrolling direct; only scene interpolation is damped. */
+.hero-scroll {
+  /* Reserve the journey before hydration so native scroll restoration works. */
+  --scroll-distance: max(132svh, 950.4px);
+  position: relative;
+  height: calc(max(100svh, 720px) + var(--scroll-distance, 0px));
+}
+.hero-scroll > .hero {
+  position: sticky;
+  top: 0;
+}
+.hero:after {
+  transform: translate3d(var(--atmosphere-x, 0px), var(--atmosphere-y, 0px), 0);
+}
+.hero-tagline {
+  width: max-content;
+}
+.hero-nav {
+  background-color: rgba(2, 5, 6, var(--nav-shade, 0));
+}
+.title-composition {
+  transform-origin: left center;
+}
+.signal-bridge {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+}
+.signal-path {
+  fill: none;
+  stroke: #ff7109;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.signal-core {
+  stroke-width: 1.3;
+}
+.signal-halo {
+  stroke-width: 3;
+  opacity: 0.48;
+}
+.signal-head-halo {
+  fill: #ff6900;
+}
+.signal-head {
+  fill: #fff5df;
+  stroke: #ff7b18;
+  stroke-width: 2;
+}
+.handoff-boundary {
+  height: 1px;
+  background: #020506;
+}
+html[data-hero-motion="boot"] .title-composition {
+  clip-path: inset(0 100% 0 0);
+}
+html[data-hero-motion="boot"] .globe-stage {
+  opacity: 0.42;
+}
+html[data-hero-motion="boot"] .hero-nav {
+  opacity: 0.5;
+}
+html[data-hero-motion="boot"]
+  :is(.eyebrow, .hero-description, .hero-tagline, .hero-meta, .cta-wrap) {
+  opacity: 0.08;
+}
+html[data-hero-motion="boot"]
+  :is(.system-label, .scroll-cue, .bottom-phrase, .side-phrase) {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .register {
+    transition:
+      background-color 0.18s ease-out,
+      box-shadow 0.2s ease-out;
+  }
+  .register svg {
+    transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .register:is(:hover, :focus-visible) svg {
+    transform: translate(2px, -2px);
+  }
+  .register:after {
+    transition: clip-path 0.36s cubic-bezier(0.25, 0.6, 0.2, 1);
+  }
+  .register:is(:hover, :focus-visible):after {
+    clip-path: inset(0 0 98% 0);
+  }
+}
+@media (min-width: 701px) and (max-width: 1200px) {
+  .hero-scroll {
+    --scroll-distance: max(105svh, 756px);
+  }
+}
+@media (max-width: 700px) {
+  .hero-scroll {
+    --scroll-distance: max(72svh, 590.4px);
+    height: calc(max(100svh, 820px) + var(--scroll-distance, 0px));
+  }
+  .signal-core {
+    stroke-width: 1;
+  }
+  .globe-stage {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent var(--globe-mask-start, 52%),
+      #000 var(--globe-mask-end, 73%)
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll {
+    height: auto !important;
+  }
+  .hero-scroll > .hero {
+    position: relative;
+  }
+  .hero:after {
+    transform: none;
+  }
+  .signal-bridge,
+  .handoff-boundary {
+    display: none;
   }
 }

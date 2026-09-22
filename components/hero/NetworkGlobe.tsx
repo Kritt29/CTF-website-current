@@ -1,7 +1,9 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { arc, cities, geographic, seededRandom } from "./globeGeometry";
+import { createGlobeMotion } from "./motion/globeMotion";
+import type { HeroMotionState } from "./motion/state";
 
 const surfaceVertex = `varying vec2 vUv;varying vec3 vNormal;varying vec3 vPosition;
 void main(){vUv=uv;vNormal=normalize(normalMatrix*normal);vec4 p=modelViewMatrix*vec4(position,1.);vPosition=p.xyz;gl_Position=projectionMatrix*p;}`;
@@ -58,8 +60,12 @@ function nodeTexture() {
   return texture;
 }
 
-/** Static approval frame. Render only on asset completion and resize. */
-export default function NetworkGlobe() {
+/** Approved artwork, with an imperative render hook for the shared motion clock. */
+export default function NetworkGlobe({
+  motion,
+}: {
+  motion: RefObject<HeroMotionState>;
+}) {
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const host = container.current!;
@@ -87,6 +93,11 @@ export default function NetworkGlobe() {
       flightPaths = new THREE.Group();
     scene.add(rig);
     rig.add(earth, flightPaths);
+    const networkActivation = { value: 1 };
+    const signalNodes: THREE.Points<
+      THREE.BufferGeometry,
+      THREE.PointsMaterial
+    >[] = [];
     const random = seededRandom(93),
       mobile = innerWidth < 700;
     let ready = false,
@@ -255,6 +266,7 @@ export default function NetworkGlobe() {
         }),
       );
       parent.add(p);
+      signalNodes.push(p);
       return p;
     }
     const anchor: number[] = [],
@@ -811,24 +823,41 @@ export default function NetworkGlobe() {
         }),
       ),
     );
+    const motionRig = createGlobeMotion({
+      rig,
+      earth,
+      flightPaths,
+      moons,
+      marker,
+      glow,
+      nodes: signalNodes,
+      activation: networkActivation,
+    });
     const label =
         host.parentElement?.querySelector<HTMLElement>(".hyderabad-label"),
       markWorld = new THREE.Vector3();
     let width = 1,
       heightPx = 1;
+    let renderedFrames = 0;
     function render() {
       if (disposed) return;
       scene.updateMatrixWorld();
+      camera.updateMatrixWorld();
       if (label) {
         marker.getWorldPosition(markWorld);
         markWorld.project(camera);
         const x = (markWorld.x * 0.5 + 0.5) * width,
           y = (-markWorld.y * 0.5 + 0.5) * heightPx;
+        motion.current.locator.x = x;
+        motion.current.locator.y = y;
         label.style.left = `${x - (width < 700 ? 100 : 130)}px`;
         label.style.top = `${y - 20}px`;
       }
       renderer.render(scene, camera);
+      if (++renderedFrames % 15 === 0)
+        host.dataset.renderCount = String(renderedFrames);
       host.dataset.ready = "true";
+      motion.current.ready = true;
       host.dataset.drawCalls = String(renderer.info.render.calls);
       host.dataset.triangles = String(renderer.info.render.triangles);
       host.dataset.points = String(renderer.info.render.points);
@@ -868,6 +897,7 @@ export default function NetworkGlobe() {
         moon.visible = !small;
       });
       host.dataset.sphereDiameter = String(radius * 2);
+      motionRig.captureBase(width, heightPx);
       ready = true;
       requestRender();
     }
@@ -890,11 +920,12 @@ export default function NetworkGlobe() {
         new THREE.LineSegments(
           geometry,
           new THREE.ShaderMaterial({
+            uniforms: { activation: networkActivation },
             vertexColors: true,
             transparent: true,
             depthWrite: false,
             vertexShader: `attribute float routeAlpha;varying vec3 vColor;varying float vAlpha;void main(){vColor=color;vAlpha=routeAlpha;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-            fragmentShader: `varying vec3 vColor;varying float vAlpha;void main(){gl_FragColor=vec4(vColor,vAlpha);
+            fragmentShader: `uniform float activation;varying vec3 vColor;varying float vAlpha;void main(){gl_FragColor=vec4(vColor,vAlpha*(.1+.9*activation));
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
         }`,
@@ -903,6 +934,10 @@ export default function NetworkGlobe() {
       );
     });
     resize();
+    motion.current.renderFrame = (frame) => {
+      motionRig.apply(frame);
+      render();
+    };
     const observer = new ResizeObserver(resize);
     observer.observe(host);
     const onLoss = (e: Event) => {
@@ -912,6 +947,8 @@ export default function NetworkGlobe() {
     renderer.domElement.addEventListener("webglcontextlost", onLoss);
     return () => {
       disposed = true;
+      motion.current.renderFrame = null;
+      motion.current.ready = false;
       abort.abort();
       cancelAnimationFrame(scheduled);
       observer.disconnect();
@@ -935,6 +972,6 @@ export default function NetworkGlobe() {
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, []);
+  }, [motion]);
   return <div className="globe-stage" ref={container} aria-hidden="true" />;
 }

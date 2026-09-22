@@ -20,8 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased">{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.dataset.heroMotion='boot';setTimeout(function(){delete document.documentElement.dataset.heroMotion},2400)}`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

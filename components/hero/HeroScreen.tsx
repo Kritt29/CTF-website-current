@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ArrowUpRight,
   MapPin,
@@ -9,6 +9,9 @@ import {
   Signal,
 } from "lucide-react";
 import NetworkGlobe from "./NetworkGlobe";
+import SignalBridge from "./motion/SignalBridge";
+import { createMotionState } from "./motion/state";
+import { useHeroMotion } from "./motion/useHeroMotion";
 
 import { event } from "./content";
 export function RegisterCTA({ compact = false }: { compact?: boolean }) {
@@ -148,67 +151,78 @@ function HeroMeta() {
   );
 }
 export default function HeroScreen() {
+  const root = useRef<HTMLDivElement>(null);
+  const motion = useRef(createMotionState());
+  useHeroMotion(root, motion);
   return (
     <>
       <a className="skip-link" href="#hero-content">
         Skip to event
       </a>
       <main id="home">
-        <section
-          className="hero"
+        <div className="hero-scroll" ref={root}>
+          <section
+            className="hero"
 
-          aria-label="DDC CTF — Enter the Grid"
-        >
-          <div className="edge-lines" />
-          <HeroNavigation />
-          <NetworkGlobe />
-          <div id="hero-content">
-            <HeroTypography />
-          </div>
-          <div className="system-label scan-label" aria-hidden="true">
-            SCAN
-            <br />
-            DETECT
-            <br />
-            ANALYZE
-          </div>
-          <div className="system-label hyderabad-label">
-            HYDERABAD
-            <small>
-              17.3859° N<br />
-              78.4867° E
-            </small>
-          </div>
-          <div className="system-label network-label" aria-hidden="true">
-            <span>
-              LIVE
+            aria-label="DDC CTF — Enter the Grid"
+          >
+            <div className="edge-lines" />
+            <HeroNavigation />
+            <NetworkGlobe motion={motion} />
+            <SignalBridge />
+            <div id="hero-content">
+              <HeroTypography />
+            </div>
+            <div className="system-label scan-label" aria-hidden="true">
+              SCAN
               <br />
-              NETWORK
-            </span>
-            <Signal />
-          </div>
-          <p className="side-phrase" aria-hidden="true">
-            A<br />
-            SAFER
-            <br />
-            TOMORROW
-          </p>
-          <p className="side-phrase bottom-right" aria-hidden="true">
-            BUILT FOR
-            <br />
-            BRIGHTER
-            <br />
-            DEFENCES
-          </p>
-          <p className="bottom-phrase" aria-hidden="true">
-            PEOPLE × IDEAS × EXPLOITS × IMPACT
-          </p>
-          <div className="scroll-cue" aria-hidden="true">
-            SCROLL TO EXPLORE
-            <span className="mouse" />
-            <ChevronDown />
-          </div>
-        </section>
+              DETECT
+              <br />
+              ANALYZE
+            </div>
+            <div className="system-label hyderabad-label">
+              HYDERABAD
+              <small>
+                17.3859° N<br />
+                78.4867° E
+              </small>
+            </div>
+            <div className="system-label network-label" aria-hidden="true">
+              <span>
+                LIVE
+                <br />
+                NETWORK
+              </span>
+              <Signal />
+            </div>
+            <p className="side-phrase" aria-hidden="true">
+              A<br />
+              SAFER
+              <br />
+              TOMORROW
+            </p>
+            <p className="side-phrase bottom-right" aria-hidden="true">
+              BUILT FOR
+              <br />
+              BRIGHTER
+              <br />
+              DEFENCES
+            </p>
+            <p className="bottom-phrase" aria-hidden="true">
+              PEOPLE × IDEAS × EXPLOITS × IMPACT
+            </p>
+            <div className="scroll-cue" aria-hidden="true">
+              SCROLL TO EXPLORE
+              <span className="mouse" />
+              <ChevronDown />
+            </div>
+          </section>
+        </div>
+        <div
+          className="handoff-boundary"
+          data-page01-boundary
+          aria-hidden="true"
+        />
       </main>
     </>
   );
