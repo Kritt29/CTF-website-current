@@ -12,7 +12,7 @@ const code = [
 ];
 export default function VectorObject({ kind }: { kind: string }) {
   const id = useId().replaceAll(":", "");
-  if (["crypto", "forensics", "osint"].includes(kind)) {
+  if (["crypto", "forensics", "osint", "pwn"].includes(kind)) {
     return (
       <img
         className={`vector-object vector-reference-image vector-${kind}`}
