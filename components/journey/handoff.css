@@ -1,35 +1,38 @@
+/* Native sticky overlap only: no wheel interception or ScrollTrigger pin. */
+.hero-scroll.journey-overlap {
+  height: calc(var(--handoff-height) + var(--scroll-distance) + var(--handoff-height) * .75);
+}
 .journey-departure {
-  scale: calc(1 - var(--journey-depth, 0) * .12);
-  transform-origin: 50% 100%;
+  scale: calc(1 - var(--journey-depth, 0) * .04);
+  transform-origin: 35% 25%;
 }
 .journey-departure .globe-stage {
-  scale: calc(1 - var(--journey-depth, 0) * .22);
-  translate: calc(var(--journey-depth, 0) * 8vw) calc(var(--journey-depth, 0) * -5vh);
-  transform-origin: 65% 40%;
+  scale: calc(1 - var(--journey-depth, 0) * .48);
+  translate: calc(var(--journey-depth, 0) * -8vw) calc(var(--journey-depth, 0) * -12vh);
+  transform-origin: 28% 25%;
 }
-.journey-arrival::before {
-  content: "";
-  position: absolute;
-  inset: -100px 0 auto;
-  height: 101px;
-  background: linear-gradient(transparent, #020405);
-  opacity: var(--journey-edge, 1);
-  pointer-events: none;
+.journey-departure .signal-bridge { filter: opacity(calc(1 - var(--journey-depth, 0) * 2)); }
+.journey-departure .hero-nav { filter: opacity(calc(1 - var(--journey-depth, 0) * 5)); }
+.journey-departure #hero-content {
+  filter: opacity(calc(1 - var(--journey-depth, 0) * 2.4));
+  scale: calc(1 - var(--journey-depth, 0) * .14);
+}
+.journey-arrival {
+  margin-top: calc(-1 * var(--handoff-height));
+  z-index: 3;
+  will-change: transform;
+  background: rgba(2, 4, 5, var(--scene-solidity, 0));
+  mask-image: linear-gradient(to bottom, transparent calc(var(--reveal-top, 0%) - 8%), #000 var(--reveal-top, 0%), #000 calc(100% - var(--reveal-bottom, 0%)), transparent calc(108% - var(--reveal-bottom, 0%)));
 }
 .journey-signal {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 8;
-  pointer-events: none;
-  visibility: hidden;
-  overflow: visible;
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: 8; pointer-events: none; visibility: hidden; overflow: visible;
   filter: drop-shadow(0 0 5px #ff6a1370);
 }
-.journey-route { fill: none; stroke: #ff7109; stroke-width: 1.3; }
-.journey-signal circle { fill: #fff5df; stroke: #ff7b18; stroke-width: 2; }
+.journey-route { fill: none; stroke: #ff7109; stroke-width: 1.1; }
+.journey-signal circle { fill: #fff5df; stroke: #ff7b18; stroke-width: 1.5; }
+.journey-arrival .vector-reference-image { backface-visibility: hidden; transform: translateZ(0); }
 @media (prefers-reduced-motion: reduce) { .journey-signal { display: none; } }
 
-/* Keep masked artwork on its own compositing surface during the handoff. */
-.journey-arrival .vector-reference-image { backface-visibility: hidden; transform: translateZ(0); }
+.journey-arrival .vectors-screen { background: rgba(2, 4, 5, var(--scene-solidity, 0)); }
+

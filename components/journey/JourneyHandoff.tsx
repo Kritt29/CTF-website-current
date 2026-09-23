@@ -5,8 +5,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./handoff.css";
 
 gsap.registerPlugin(ScrollTrigger);
+const phase = (a: number, b: number, p: number) => gsap.utils.clamp(0, 1, (p - a) / (b - a));
 
-/** An optional bridge between the two approved scenes, never mounted standalone. */
+/** The existing handoff clock owns only the overlap between the approved scenes. */
 export default function JourneyHandoff() {
   const overlay = useRef<SVGSVGElement>(null);
   useLayoutEffect(() => {
@@ -18,85 +19,100 @@ export default function JourneyHandoff() {
     if (!root || !hero || !next || !heading || !svg) return;
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      const path = svg.querySelector<SVGPathElement>(".journey-route")!;
-      const head = svg.querySelector<SVGCircleElement>("circle")!;
+      const routes = [...svg.querySelectorAll<SVGGElement>(".journey-transfer")];
       const source = hero.querySelector<SVGPathElement>(".signal-core");
+      const globe = hero.querySelector<HTMLElement>(".globe-stage")!;
+      const objects = [...next.querySelectorAll<HTMLElement>(".vector-domain:nth-child(-n+3) .vector-art > .vector-object")];
       const state = { progress: 0 };
+      const measure = () => {
+        const h = `${hero.clientHeight}px`;
+        root.style.setProperty("--handoff-height", h);
+        next.style.setProperty("--handoff-height", h);
+      };
+      measure();
+      root.classList.add("journey-overlap");
       hero.classList.add("journey-departure");
       next.classList.add("journey-arrival");
+      const start = () => root.getBoundingClientRect().top + scrollY + parseFloat(getComputedStyle(root).getPropertyValue("--scroll-distance"));
       const draw = () => {
         const p = state.progress;
-        svg.style.visibility = p > 0.001 && p < 0.999 ? "visible" : "hidden";
-        hero.style.setProperty("--journey-depth", String(p));
-        next.style.setProperty("--journey-edge", String(1 - p));
+        root.dataset.handoffProgress = p.toFixed(4);
         next.dataset.handoffProgress = p.toFixed(4);
-        if (p <= 0 || p >= 1) return;
-        // Start on the existing Hyderabad route in screen coordinates, including
-        // its inherited scene transform. The new route shares its exact tangent.
-        const length = source?.getTotalLength() || 0;
-        const sourceSvg = source?.ownerSVGElement;
-        const sourceRect = sourceSvg?.getBoundingClientRect();
-        const at = (fraction: number) => {
-          const point = source!.getPointAtLength(length * fraction);
-          return new DOMPoint(sourceRect!.left + point.x * sourceRect!.width / sourceSvg!.clientWidth, sourceRect!.top + point.y * sourceRect!.height / sourceSvg!.clientHeight);
-        };
-        const a = length && sourceRect ? at(0.82) : new DOMPoint(innerWidth * .5, hero.getBoundingClientRect().bottom - 70);
-        const before = length && sourceRect ? at(0.80) : new DOMPoint(a.x, a.y - 10);
-        const r = heading.getBoundingClientRect();
-        const end = { x: r.left - 18, y: r.top + r.height * .56 };
-        const c1 = { x: a.x + (a.x - before.x) * 6, y: a.y + Math.max(45, (a.y - before.y) * 6) };
-        const c2 = { x: end.x + innerWidth * .27, y: end.y - 100 };
-        const t = Math.min(1, p / .72), u = 1 - t;
-        const b = { x: u * a.x + t * c1.x, y: u * a.y + t * c1.y };
-        const c = { x: u*u*a.x + 2*u*t*c1.x + t*t*c2.x, y: u*u*a.y + 2*u*t*c1.y + t*t*c2.y };
-        const tip = { x: u*u*u*a.x + 3*u*u*t*c1.x + 3*u*t*t*c2.x + t*t*t*end.x, y: u*u*u*a.y + 3*u*u*t*c1.y + 3*u*t*t*c2.y + t*t*t*end.y };
-        path.setAttribute("d", `M${a.x},${a.y} C${b.x},${b.y} ${c.x},${c.y} ${tip.x},${tip.y}`);
-        head.setAttribute("cx", String(tip.x));
-        head.setAttribute("cy", String(tip.y));
-        svg.style.opacity = String(Math.min(1, p * 14) * Math.min(1, (1 - p) * 7));
+        hero.style.setProperty("--journey-depth", String(p));
+        next.style.setProperty("--scene-solidity", String(phase(.2, .85, p)));
+        svg.style.visibility = p > .005 && p < .94 ? "visible" : "hidden";
+        if (p <= .005 || p >= .94 || !source?.getAttribute("d")) return;
+        // Sample the existing network origin, including the departing globe's
+        // separate CSS depth transform. No duplicate globe or new render loop.
+        const point = source.getPointAtLength(0);
+        const box = globe.getBoundingClientRect();
+        const a = { x: box.left + point.x * box.width / globe.clientWidth, y: box.top + point.y * box.height / globe.clientHeight };
+        routes.forEach((group, i) => {
+          const path = group.querySelector("path")!;
+          const head = group.querySelector("circle")!;
+          const rect = objects[i].getBoundingClientRect();
+          const end = { x: rect.left + rect.width * .53, y: rect.top + rect.height * .49 };
+          const travel = phase(.06 + i * .07, .48 + i * .07, p);
+          const u = 1 - travel;
+          const c1 = { x: a.x + (end.x - a.x) * .32, y: a.y - innerHeight * (.07 + i * .025) };
+          const c2 = { x: end.x - (end.x - a.x) * .16, y: end.y - innerHeight * .14 };
+          const b = { x: u*a.x + travel*c1.x, y: u*a.y + travel*c1.y };
+          const c = { x: u*u*a.x + 2*u*travel*c1.x + travel*travel*c2.x, y: u*u*a.y + 2*u*travel*c1.y + travel*travel*c2.y };
+          const tip = { x: u*u*u*a.x + 3*u*u*travel*c1.x + 3*u*travel*travel*c2.x + travel**3*end.x, y: u*u*u*a.y + 3*u*u*travel*c1.y + 3*u*travel*travel*c2.y + travel**3*end.y };
+          path.setAttribute("d", `M${a.x},${a.y} C${b.x},${b.y} ${c.x},${c.y} ${tip.x},${tip.y}`);
+          head.setAttribute("cx", String(tip.x));
+          head.setAttribute("cy", String(tip.y));
+          group.style.opacity = String(phase(.01+i*.06,.10+i*.06,p) * (1-phase(.52+i*.07,.72+i*.07,p)) * .82);
+        });
       };
       const timeline = gsap.timeline({
         scrollTrigger: {
-          id: "ddc-scene-handoff",
-          trigger: root,
-          start: "bottom bottom",
-          end: () => `+=${hero.clientHeight * .96}`,
-          scrub: .24,
-          invalidateOnRefresh: true,
+          id: "ddc-scene-handoff", trigger: root, start,
+          end: () => start() + hero.clientHeight * .75,
+          scrub: .22, invalidateOnRefresh: true, onRefreshInit: measure,
         },
         onUpdate: draw,
       });
       timeline.to(state, { progress: 1, duration: 1, ease: "none" }, 0);
-      timeline.fromTo(heading, { clipPath: "inset(0 -100% 100% 0)", rotateX: 12, transformPerspective: 1100, transformOrigin: "50% 100%" },
-        { clipPath: "inset(0 -100% 0% 0)", rotateX: 0, duration: .48, ease: "power2.out" }, .32);
+      // A shared camera move: Page 02 occupies the departing scene immediately,
+      // then returns exactly to its normal document position at the end.
+      timeline.fromTo(next,
+        { y: () => -hero.clientHeight * .58, scale: .88, rotationX: 7, transformPerspective: 1500, transformOrigin: "50% 45%", "--reveal-top": "48%", "--reveal-bottom": "52%" },
+        { y: 0, scale: 1, rotationX: 0, "--reveal-top": "0%", "--reveal-bottom": "0%", duration: 1, ease: "power1.inOut" }, 0);
+      timeline.fromTo(heading.children,
+        { clipPath: "inset(0 -100% 100% 0)", rotationX: 18, z: -90, transformPerspective: 1100, transformOrigin: "0% 100%" },
+        { clipPath: "inset(0 -100% 0% 0)", rotationX: 0, z: 0, duration: .39, stagger: .08, ease: "power2.out" }, .28);
       timeline.fromTo(next.querySelectorAll(".vectors-intro,.vectors-motto,.vectors-index"),
-        { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .34, stagger: .04, ease: "power1.out" }, .49);
-      // Transform the artwork itself; Page 02 retains ownership of its pointer
-      // and category focus transforms on the parent .vector-art elements.
-      timeline.fromTo(next.querySelectorAll(".vector-domain:nth-child(-n+3) .vector-object"),
-        { scale: .86, rotateX: 8, transformPerspective: 1100, transformOrigin: "50% 50%" },
-        { scale: 1, rotateX: 0, duration: .36, stagger: .045, ease: "power2.out" }, .51);
-      timeline.to({}, { duration: .04 }, .96);
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: .27, stagger: .035, ease: "power1.out" }, .46);
+      objects.forEach((object, i) => {
+        timeline.fromTo(object,
+          { scale: .58, rotationY: (i-1)*-13, rotationX: 13, z: -150, transformPerspective: 1100, filter: "brightness(.35) blur(2px)" },
+          { scale: 1, rotationY: 0, rotationX: 0, z: 0, filter: "brightness(1) blur(0px)", duration: .47, ease: "power2.out" }, .15+i*.09);
+      });
+      timeline.fromTo(next.querySelector(".vectors-nav"),
+        { clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)", duration: .2, ease: "power1.out" }, .77);
       draw();
-      // The hero has its own damped clock. Follow its moving attachment point
-      // until it settles, including when the user reverses direction.
       const followSource = () => {
-        if (state.progress > 0 && state.progress < 1 && !document.hidden) draw();
+        if (state.progress > 0 && state.progress < .94 && !document.hidden) draw();
       };
       gsap.ticker.add(followSource);
       return () => {
         gsap.ticker.remove(followSource);
-        // matchMedia reverts only the timeline created in this context.
+        root.classList.remove("journey-overlap");
         hero.classList.remove("journey-departure");
         next.classList.remove("journey-arrival");
         hero.style.removeProperty("--journey-depth");
-        next.style.removeProperty("--journey-edge");
+        root.style.removeProperty("--handoff-height");
+        next.style.removeProperty("--handoff-height");
+        next.style.removeProperty("--scene-solidity");
+        delete root.dataset.handoffProgress;
         delete next.dataset.handoffProgress;
         svg.style.visibility = "hidden";
       };
     });
     return () => media.revert();
   }, []);
-  return <svg ref={overlay} className="journey-signal" aria-hidden="true" focusable="false"><path className="journey-route" /><circle r="3" /></svg>;
+  return <svg ref={overlay} className="journey-signal" aria-hidden="true" focusable="false">{[0,1,2].map(i => <g key={i} className="journey-transfer"><path className="journey-route" /><circle r="2.4" /></g>)}</svg>;
 }
 
