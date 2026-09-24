@@ -1,22 +1,36 @@
-/* Keep the approved native sticky handoff and outgoing scene choreography. */
+/* Keep the approved native sticky handoff and outgoing scene choreography.
+   Per-frame values are written by JourneyHandoff directly onto the element
+   that uses them; nothing here depends on an animated inherited variable. */
 .hero-scroll.journey-overlap {
   height: calc(var(--handoff-height) + var(--scroll-distance) + var(--handoff-height) * var(--arrival-travel, .75));
 }
-.journey-departure {
-  scale: calc(1 - var(--journey-depth, 0) * .04);
-  transform-origin: 35% 25%;
+.journey-departure { transform-origin: 35% 25%; }
+.journey-departure .globe-stage { transform-origin: 28% 25%; }
+/* The signal layer repaints while it travels; keep that repaint off the
+   globe's layer. */
+.journey-departure .signal-bridge { will-change: transform; }
+/* Near and during the handoff every departing element is its own layer, so
+   scale/translate/fade are compositor updates instead of full-hero repaints. */
+.journey-departure.journey-live,
+.journey-live .globe-stage { will-change: transform; }
+.journey-live #hero-content { will-change: transform, filter; }
+.journey-live .hero-nav,
+.journey-live .signal-bridge { will-change: transform, filter; }
+
+/* Retires Page 01 into the page background along the wipe edge. Stacks above
+   the (isolated) hero and below the incoming scene; moved only by transform. */
+.journey-veil {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+  pointer-events: none;
+  visibility: hidden;
+  will-change: transform;
+  background: linear-gradient(to bottom, var(--ink) calc(66.6667% - 25px), transparent calc(66.6667% + 25px));
 }
-.journey-departure .globe-stage {
-  scale: calc(1 - var(--journey-depth, 0) * .48);
-  translate: calc(var(--journey-depth, 0) * -8vw) calc(var(--journey-depth, 0) * -12vh);
-  transform-origin: 28% 25%;
-}
-.journey-departure .signal-bridge { filter: opacity(calc(1 - var(--journey-depth, 0) * 2)); }
-.journey-departure .hero-nav { filter: opacity(calc(1 - var(--journey-depth, 0) * 5)); }
-.journey-departure #hero-content {
-  filter: opacity(calc(1 - var(--journey-depth, 0) * 2.4));
-  scale: calc(1 - var(--journey-depth, 0) * .14);
-}
+
 /* The incoming world stays opaque and moves as one plane. */
 .journey-arrival {
   margin-top: calc(-1 * (var(--handoff-height) + var(--arrival-distance)));
@@ -24,28 +38,30 @@
   background: transparent;
   z-index: 3;
 }
+/* Promoted for the whole journey: toggling promotion at the start or end of
+   the handoff would re-rasterize the entire scene in the middle of a scroll. */
 .journey-arrival > .vectors-screen {
   position: sticky;
   top: 0;
-  will-change: auto;
-  mask-image: linear-gradient(to bottom, #000 calc(var(--arrival-edge, -100px) - 50px), transparent var(--arrival-edge, -100px));
+  will-change: transform;
 }
-.journey-arrival[data-arrival-running="true"] > .vectors-screen { will-change: transform; }
-.journey-arrival[data-arrival-settled="true"] > .vectors-screen { mask-image: none; will-change: auto; }
 /* Suspend internal focus/parallax during arrival; blend back to the exact
-   approved expressions only after the scene itself has reached its resting pose. */
+   approved expressions only after the scene itself has reached its resting
+   pose. Not inherited, so writing it restyles only the six art wrappers. */
+@property --scene-internals {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
 .journey-arrival .vector-art {
   will-change: auto;
-  transform: translate3d(calc(var(--px, 0px) * var(--scene-internals, 0)), calc(var(--py, 0px) * var(--scene-internals, 0)), calc(var(--focus, 0) * 24px * var(--scene-internals, 0)))
-    scale(calc(1 + (-.015 + var(--focus, 0) * .045) * var(--scene-internals, 0)));
-  filter: brightness(calc(1 + (-.02 + var(--focus, 0) * .18) * var(--scene-internals, 0)));
+  transform: translate3d(calc(var(--px, 0px) * var(--scene-internals)), calc(var(--py, 0px) * var(--scene-internals)), calc(var(--focus, 0) * 24px * var(--scene-internals)))
+    scale(calc(1 + (-.015 + var(--focus, 0) * .045) * var(--scene-internals)));
+  filter: brightness(calc(1 + (-.02 + var(--focus, 0) * .18) * var(--scene-internals)));
 }
 .journey-arrival .vector-reference-image { backface-visibility: hidden; transform: translateZ(0); }
 
-
-/* Retire the outgoing field wherever the incoming environment now owns the frame. */
-.journey-departure { mask-image: linear-gradient(to bottom, transparent calc(var(--arrival-edge, -100px) - 35px), #000 calc(var(--arrival-edge, -100px) + 15px)); }
-
-/* Invisible-only lifecycle culling; preserves sticky geometry and scroll range. */
-.journey-departure.journey-occluded { translate: 0 -200vh; visibility: hidden; }
-
+/* Invisible-only culling once the wipe has fully covered Page 01. Opacity 0
+   skips drawing the layer but keeps its raster, so reversing never waits on a
+   repaint; geometry and scroll range are untouched. */
+.journey-departure.journey-occluded { opacity: 0; pointer-events: none; }

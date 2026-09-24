@@ -5,6 +5,9 @@ export function useVectorMotion(ref: RefObject<HTMLDivElement | null>) {
     const root = ref.current!;
     const scene = root.querySelector<HTMLElement>(".vectors-screen")!;
     const items = [...root.querySelectorAll<HTMLElement>(".vector-domain")];
+    // Only the artwork reads the focus variables. Writing them on the article
+    // restyled and re-laid-out every heading and caption each frame.
+    const arts = items.map((item) => item.querySelector<HTMLElement>(".vector-art")!);
     const arriving = () => root.dataset.arrivalSettled === "false";
     const preference = matchMedia("(prefers-reduced-motion: reduce)");
     const previous = items.map(() => [NaN, NaN, NaN]);
@@ -16,12 +19,12 @@ export function useVectorMotion(ref: RefObject<HTMLDivElement | null>) {
       const selected = hover < 0 ? active : hover;
       const index = String(Math.round(selected));
       if (root.dataset.active !== index) root.dataset.active = index;
-      items.forEach((item, i) => {
+      arts.forEach((art, i) => {
         const f = Math.max(0, 1 - Math.abs(selected - i));
         const values = [f, px * f * 5, py * f * 3];
         values.forEach((value, j) => {
           if (value === previous[i][j]) return;
-          item.style.setProperty(["--focus", "--px", "--py"][j], `${value}${j ? "px" : ""}`);
+          art.style.setProperty(["--focus", "--px", "--py"][j], `${value}${j ? "px" : ""}`);
           previous[i][j] = value;
         });
       });
@@ -72,8 +75,8 @@ export function useVectorMotion(ref: RefObject<HTMLDivElement | null>) {
     const change = () => {
       cancelAnimationFrame(frame); frame = 0;
       root.dataset.motion = preference.matches ? "reduced" : "local";
-      if (preference.matches) items.forEach((item, i) => {
-        ["--focus", "--px", "--py"].forEach(name => item.style.removeProperty(name));
+      if (preference.matches) arts.forEach((art, i) => {
+        ["--focus", "--px", "--py"].forEach(name => art.style.removeProperty(name));
         previous[i] = [NaN, NaN, NaN];
       });
       else { dirty = true; if (arriving()) arrivalChange(); else wake(); }

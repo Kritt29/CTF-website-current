@@ -6,6 +6,7 @@ import { phase } from "./state";
 import { createIntro } from "./intro";
 import { createScrollTimelines } from "./scroll";
 import { createSignalBridge } from "./bridge";
+import { isScrollSmoothed } from "@/lib/motion/scrollAuthority";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -65,6 +66,7 @@ export function useHeroMotion(
         let viewportWidth = hero.clientWidth,
           viewportHeight = hero.clientHeight;
         const bridge = createSignalBridge(root);
+        const rendered = { progress: NaN, x: NaN, y: NaN };
         const content = root.querySelector<HTMLElement>("#hero-content")!;
         const cta = root.querySelector<HTMLElement>(".cta-wrap")!;
         const intro = createIntro(
@@ -176,9 +178,13 @@ export function useHeroMotion(
           if (!visible || !tabVisible) return;
           if (root.dataset.intro === "complete") idle += dt;
           state.elapsed = idle;
+          // Scroll input that is already smoothed is followed 1:1; a second
+          // interpolation here would lag the globe behind the rest of the page.
           state.progress +=
             (target - state.progress) *
-            (1 - Math.exp(-dt / (mobile ? 0.065 : 0.105)));
+            (isScrollSmoothed()
+              ? 1
+              : 1 - Math.exp(-dt / (mobile ? 0.065 : 0.105)));
           if (Math.abs(target - state.progress) < 0.000015)
             state.progress = target;
           const pointerWeight = 1 - phase(0.04, 0.42, state.progress);
@@ -192,15 +198,31 @@ export function useHeroMotion(
             timelines.supporting.progress(target);
             timelines.spatial.progress(state.progress);
           }
-          state.renderFrame?.(state);
+          // Past 0.42 idle drift and pointer response are fully suppressed,
+          // so the globe frame depends only on progress. Re-rendering an
+          // identical frame would force the compositor to redraw every layer
+          // above the canvas during the handoff.
+          const unchanged =
+            state.progress >= 0.42 &&
+            state.progress === rendered.progress &&
+            Math.abs(state.pointerX - rendered.x) < 1e-4 &&
+            Math.abs(state.pointerY - rendered.y) < 1e-4;
+          if (!unchanged) {
+            state.renderFrame?.(state);
+            rendered.progress = state.progress;
+            rendered.x = state.pointerX;
+            rendered.y = state.pointerY;
+          }
           const atmosphereX =
             state.pointerX * -2 -
             phase(0.1, 1, state.progress) * (mobile ? 10 : 44);
           const atmosphereY =
             state.pointerY * -1 +
             phase(0.1, 1, state.progress) * (mobile ? 12 : 50);
-          hero.style.setProperty("--atmosphere-x", `${atmosphereX}px`);
-          hero.style.setProperty("--atmosphere-y", `${atmosphereY}px`);
+          // These are inherited by the whole hero; unrounded, the endless
+          // pointer decay rewrote them every frame and restyled every node.
+          hero.style.setProperty("--atmosphere-x", `${atmosphereX.toFixed(2)}px`);
+          hero.style.setProperty("--atmosphere-y", `${atmosphereY.toFixed(2)}px`);
           hero.style.setProperty(
             "--nav-shade",
             String(phase(0.12, 0.45, state.progress) * 0.86),

@@ -4,6 +4,9 @@ export function createSignalBridge(root: HTMLElement) {
   const svg = root.querySelector<SVGSVGElement>(".signal-bridge")!;
   const paths = [...svg.querySelectorAll<SVGPathElement>(".signal-path")];
   const heads = [...svg.querySelectorAll<SVGCircleElement>("circle")];
+  // Rewriting an identical path still repaints the full-viewport SVG layer.
+  let lastOpacity = "",
+    lastPath = "";
   return (
     progress: number,
     x: number,
@@ -12,7 +15,8 @@ export function createSignalBridge(root: HTMLElement) {
     height: number,
   ) => {
     const travel = phase(0.54, 0.98, progress);
-    svg.style.opacity = String(phase(0.52, 0.6, progress));
+    const opacity = String(phase(0.52, 0.6, progress));
+    if (opacity !== lastOpacity) svg.style.opacity = lastOpacity = opacity;
     if (progress < 0.52) return;
     const bend = width < 700 ? 0.12 : 0.23;
     const c1x = x + width * bend,
@@ -39,6 +43,8 @@ export function createSignalBridge(root: HTMLElement) {
     const bX = u * u * x + 2 * u * travel * c1x + travel * travel * c2x;
     const bY = u * u * y + 2 * u * travel * c1y + travel * travel * c2y;
     const d = `M ${x} ${y} C ${aX} ${aY}, ${bX} ${bY}, ${hx} ${hy}`;
+    if (d === lastPath) return;
+    lastPath = d;
     paths.forEach((path) => {
       path.setAttribute("d", d);
       path.style.strokeDashoffset = "0";
