@@ -1,6 +1,6 @@
-/* Native sticky overlap only: no wheel interception or ScrollTrigger pin. */
+/* Keep the approved native sticky handoff and outgoing scene choreography. */
 .hero-scroll.journey-overlap {
-  height: calc(var(--handoff-height) + var(--scroll-distance) + var(--handoff-height) * .75);
+  height: calc(var(--handoff-height) + var(--scroll-distance) + var(--handoff-height) * var(--arrival-travel, .75));
 }
 .journey-departure {
   scale: calc(1 - var(--journey-depth, 0) * .04);
@@ -17,22 +17,35 @@
   filter: opacity(calc(1 - var(--journey-depth, 0) * 2.4));
   scale: calc(1 - var(--journey-depth, 0) * .14);
 }
+/* The incoming world stays opaque and moves as one plane. */
 .journey-arrival {
-  margin-top: calc(-1 * var(--handoff-height));
+  margin-top: calc(-1 * (var(--handoff-height) + var(--arrival-distance)));
+  height: calc(var(--arrival-content-height) + var(--arrival-distance));
+  background: transparent;
   z-index: 3;
-  will-change: transform;
-  background: rgba(2, 4, 5, var(--scene-solidity, 0));
-  mask-image: linear-gradient(to bottom, transparent calc(var(--reveal-top, 0%) - 8%), #000 var(--reveal-top, 0%), #000 calc(100% - var(--reveal-bottom, 0%)), transparent calc(108% - var(--reveal-bottom, 0%)));
 }
-.journey-signal {
-  position: fixed; inset: 0; width: 100%; height: 100%;
-  z-index: 8; pointer-events: none; visibility: hidden; overflow: visible;
-  filter: drop-shadow(0 0 5px #ff6a1370);
+.journey-arrival > .vectors-screen {
+  position: sticky;
+  top: 0;
+  will-change: auto;
+  mask-image: linear-gradient(to bottom, #000 calc(var(--arrival-edge, -100px) - 50px), transparent var(--arrival-edge, -100px));
 }
-.journey-route { fill: none; stroke: #ff7109; stroke-width: 1.1; }
-.journey-signal circle { fill: #fff5df; stroke: #ff7b18; stroke-width: 1.5; }
+.journey-arrival[data-arrival-running="true"] > .vectors-screen { will-change: transform; }
+.journey-arrival[data-arrival-settled="true"] > .vectors-screen { mask-image: none; will-change: auto; }
+/* Suspend internal focus/parallax during arrival; blend back to the exact
+   approved expressions only after the scene itself has reached its resting pose. */
+.journey-arrival .vector-art {
+  will-change: auto;
+  transform: translate3d(calc(var(--px, 0px) * var(--scene-internals, 0)), calc(var(--py, 0px) * var(--scene-internals, 0)), calc(var(--focus, 0) * 24px * var(--scene-internals, 0)))
+    scale(calc(1 + (-.015 + var(--focus, 0) * .045) * var(--scene-internals, 0)));
+  filter: brightness(calc(1 + (-.02 + var(--focus, 0) * .18) * var(--scene-internals, 0)));
+}
 .journey-arrival .vector-reference-image { backface-visibility: hidden; transform: translateZ(0); }
-@media (prefers-reduced-motion: reduce) { .journey-signal { display: none; } }
 
-.journey-arrival .vectors-screen { background: rgba(2, 4, 5, var(--scene-solidity, 0)); }
+
+/* Retire the outgoing field wherever the incoming environment now owns the frame. */
+.journey-departure { mask-image: linear-gradient(to bottom, transparent calc(var(--arrival-edge, -100px) - 35px), #000 calc(var(--arrival-edge, -100px) + 15px)); }
+
+/* Invisible-only lifecycle culling; preserves sticky geometry and scroll range. */
+.journey-departure.journey-occluded { translate: 0 -200vh; visibility: hidden; }
 
