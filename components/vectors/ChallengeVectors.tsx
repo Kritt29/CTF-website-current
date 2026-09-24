@@ -74,6 +74,8 @@ export default function ChallengeVectors() {
   useVectorMotion(root);
   return (
     <div className="vectors-journey" ref={root} id="challenge-vectors">
+      {/* Motion-only wrapper: lets the journey hold the scene while it recedes. */}
+      <div className="vectors-pin">
       <section className="vectors-screen" aria-labelledby="vectors-title">
         <div className="vectors-environment" aria-hidden="true" />
         <VectorNavigation />
@@ -218,6 +220,7 @@ export default function ChallengeVectors() {
           <span>DIGITAL DEFENCE CLUB × CBIT</span>
         </footer>
       </section>
+      </div>
     </div>
   );
 }

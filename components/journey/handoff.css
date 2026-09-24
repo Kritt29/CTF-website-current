@@ -34,17 +34,48 @@
 /* The incoming world stays opaque and moves as one plane. */
 .journey-arrival {
   margin-top: calc(-1 * (var(--handoff-height) + var(--arrival-distance)));
-  height: calc(var(--arrival-content-height) + var(--arrival-distance));
+  height: calc(var(--arrival-content-height) + var(--arrival-distance) + var(--departure-distance, 0px));
   background: transparent;
   z-index: 3;
 }
+/* Two nested native sticky holds, no pin spacers or scroll-linked JS
+   positioning: the pin holds the scene at its top during the arrival (inner
+   sticky) and at its last viewport during the departure (outer sticky, with a
+   negative top); between them Page 02 scrolls naturally. */
+.journey-arrival > .vectors-pin {
+  position: sticky;
+  top: var(--pin-top, 0px);
+  height: calc(var(--arrival-content-height) + var(--arrival-distance));
+}
 /* Promoted for the whole journey: toggling promotion at the start or end of
    the handoff would re-rasterize the entire scene in the middle of a scroll. */
-.journey-arrival > .vectors-screen {
+.journey-arrival .vectors-pin > .vectors-screen {
   position: sticky;
   top: 0;
   will-change: transform;
 }
+
+/* Page 03 is laid over Page 02's last viewport and held there while it
+   resolves; its scroll space is the departure distance, not section height. */
+.highlights-root.journey-destination {
+  margin-top: calc(-1 * var(--destination-overlap));
+  height: var(--destination-height);
+  background: transparent;
+  z-index: 4;
+}
+.journey-destination > .highlights-scene { position: sticky; top: 0; }
+.journey-destination .highlights-seam {
+  display: block;
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+  /* Soft, static leading edge; it travels with the layer, never repaints. */
+  mask-image: linear-gradient(to top, transparent 0, #000 70px);
+}
+.journey-destination .highlights-seam > img { display: block; max-width: none; }
+.journey-destination .highlights-heading { transform-origin: 0% 100%; }
+.journey-destination.journey-live :is(.highlights-atmosphere, .highlights-seam, .highlights-seam > img, .highlights-heading, .highlights-time) { will-change: transform, opacity; }
+.journey-destination.journey-live :is(.highlights-depth, .highlights-frame, .highlights-nav, .highlights-signal, .highlights-countdown-label, .highlights-details, .highlights-registration, .highlights-side, .highlights-footer) { will-change: opacity; }
 /* Suspend internal focus/parallax during arrival; blend back to the exact
    approved expressions only after the scene itself has reached its resting
    pose. Not inherited, so writing it restyles only the six art wrappers. */
