@@ -1,7 +1,8 @@
+import { eventConfig } from "../../lib/event";
 export const eventHighlights = {
   // Date-only brief: use midnight in the event's Hyderabad timezone.
-  startsAt: "2026-10-12T00:00:00+05:30",
-  countdownLabel: "COUNTDOWN TO OCTOBER 12",
+  startsAt: eventConfig.startsAt,
+  countdownLabel: eventConfig.countdownLabel,
   details: [
     { label: "PARTICIPANTS", value: "TBA", icon: "people" },
     { label: "CHALLENGES", value: "TBA", icon: "box" },
@@ -10,3 +11,4 @@ export const eventHighlights = {
     { label: "PRIZE POOL", value: "TBA", icon: "trophy" },
   ],
 } as const;
+

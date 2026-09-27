@@ -1,0 +1,2 @@
+import { requireParticipantPage } from "@/lib/server/auth";
+export default async function LeaderboardPage(){await requireParticipantPage();return <section className="arena-route"><p className="arena-kicker">THE COMPETITION</p><h1>LEADERBOARD</h1><div className="arena-panel"><h2>Rankings not available yet</h2><p>The scoring and leaderboard system has not been enabled. Your dashboard shows zero score and no assigned rank.</p></div></section>;}

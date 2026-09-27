@@ -1,3 +1,4 @@
+import { registrationUrl } from "../shared/registration";
 export const domains = [
   {
     id: "web",
@@ -61,7 +62,7 @@ export const vectorEvent = {
   prizePool: null,
   duration: null,
   eligibility: null,
-  registrationUrl: "",
+  registrationUrl,
 } as {
   participants: string | null;
   challenges: string | null;

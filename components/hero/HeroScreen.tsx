@@ -1,4 +1,6 @@
 "use client";
+import LoginCTA from "../shared/LoginCTA";
+
 import { useState, useRef } from "react";
 import {
   ArrowUpRight,
@@ -95,6 +97,7 @@ function HeroNavigation() {
           <i className="status-dot" />
           REGISTRATION OPEN <b>•</b> LIMITED SLOTS
         </span>
+        <LoginCTA />
         <RegisterCTA compact />
       </div>
     </header>

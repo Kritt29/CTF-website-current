@@ -1,0 +1,2 @@
+import { requireParticipantPage } from "@/lib/server/auth";
+export default async function SubmissionsPage(){await requireParticipantPage();return <section className="arena-route"><p className="arena-kicker">YOUR RECORD</p><h1>SUBMISSIONS</h1><div className="arena-panel"><h2>No submissions yet</h2><p>Flag submission and evaluation are not enabled in this release. No attempts or results have been fabricated.</p></div></section>;}

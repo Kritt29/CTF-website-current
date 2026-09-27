@@ -1,0 +1,75 @@
+.participant-login { position:relative; isolation:isolate; min-height:max(941px,100svh); background:#020505; overflow:hidden; border:1px solid #a6b6bc30; }
+.participant-login::after { content:"";position:absolute;inset:0 14px;border-inline:1px solid #a6b6bc20;pointer-events:none; }
+.participant-header { position:relative;z-index:5;height:92px;border-bottom:1px solid var(--line);padding:0 3.8%;display:flex;align-items:center;gap:30px;background:#020505d9; }
+.participant-brand { display:flex;align-items:center;gap:12px;flex-shrink:0; }
+.participant-brand img { object-fit:contain; }
+.participant-brand span { font-size:16px; }
+.participant-brand small { display:block;font-size:13px;letter-spacing:.15em;color:var(--muted);margin-top:5px; }
+.participant-header nav { display:flex;gap:34px;margin:auto;font-size:12px;white-space:nowrap; }
+.participant-header nav a,.participant-header nav button { min-height:44px;display:flex;align-items:center;gap:10px;color:var(--muted);background:none;border:0; }
+.participant-header nav b { color:var(--paper);font-weight:400; }
+.participant-header nav button { cursor:default; }
+.participant-header-actions { display:flex;align-items:center;gap:12px; }
+.participant-header-actions .register { white-space:nowrap; }
+.participant-registration-dot { font-size:10px;white-space:nowrap;margin-right:5px; }
+.participant-registration-dot::before { content:"";display:inline-block;width:7px;height:7px;background:var(--orange);border-radius:50%;margin-right:8px;box-shadow:0 0 9px var(--orange); }
+.participant-environment { position:absolute;inset:92px 0 0;pointer-events:none;z-index:-1; }
+.participant-terrain { position:absolute;inset:0;background:linear-gradient(90deg,#02050525,#02050515 50%,#020505 72%),url('/assets/atmosphere.png') center/cover; }
+.participant-monolith { position:absolute;bottom:0;left:39%;width:29%;height:60%;object-fit:cover;object-position:88% center;mask-image:linear-gradient(to right,transparent,#000 20%,#000 75%,transparent);opacity:.75; }
+.participant-globe { position:absolute;width:120vw;height:72vw;left:-58vw;top:-3vw; }
+.participant-globe .globe-stage { mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 85%,transparent); }
+.participant-moon { position:absolute;width:11vw;aspect-ratio:1;left:35%;top:5%;border-radius:50%;background:radial-gradient(circle at 80% 25%,transparent,#000 73%),url('/assets/moon-surface.jpg') center/cover;box-shadow:inset -5px 3px 6px #dfefff30; }
+.participant-environment p { position:absolute;margin:0;color:#99a3aa;font-size:12px;line-height:1.5; }
+.participant-scan { top:5%;left:3.8%;padding:12px 17px;border:1px solid #acb9c15c; }
+.participant-locator { top:39%;left:14.3%;padding:10px 14px;border:1px solid #acb9c15c; }
+.participant-locator small { display:block;font-size:10px; }
+.participant-curiosity { top:5%;left:47.8%;letter-spacing:.12em; }
+.participant-manifesto { top:27%;left:50%;padding-left:25px;border-left:1px solid var(--orange);font-size:16px!important; }
+.participant-global { left:3.6%;bottom:20%; }
+.participant-safer { bottom:10%;left:43%; }
+.participant-footer { left:4%;bottom:7%;font-size:10px!important; }
+.participant-footer span { margin-left:25px; }
+.participant-interface { position:relative;margin:38px 4% 60px auto;width:30.5%;max-width:580px; }
+.participant-wordmark { display:flex;align-items:flex-end;gap:22px; }
+.participant-wordmark div { flex:1;min-width:0; }
+.participant-wordmark span,.participant-wordmark strong { display:block;font:900 clamp(75px,8.1vw,145px)/.82 Archivo,Arial,sans-serif;letter-spacing:-.04em;width:max-content;color:transparent;background:linear-gradient(#ffffff70,#ffffff30),url('/assets/distressed-metal.png') center/550px;background-clip:text; }
+.participant-wordmark strong { margin-top:15px;font-style:italic;background-image:linear-gradient(#ff59007a,#ff59007a),url('/assets/distressed-metal.png');background-color:#ff5900;background-blend-mode:normal,multiply; }
+.participant-wordmark p { flex-shrink:0;border-left:1px solid var(--orange);padding-left:15px;font-size:12px;line-height:1.3;color:var(--muted);margin:0 0 5px; }
+.participant-interface h1 { font:400 clamp(18px,1.7vw,29px)/1.2 Consolas,monospace;letter-spacing:.19em;margin:25px 0 12px;white-space:nowrap; }
+.participant-description { font-size:15px;line-height:1.3;letter-spacing:.045em;color:var(--muted);margin:0 0 24px; }
+.participant-panel { position:relative;padding:24px 22px 20px;border:1px solid #bac5c820;background:#020505b0; }
+.participant-panel::before { content:"";position:absolute;inset:-1px;pointer-events:none;background:linear-gradient(var(--paper),var(--paper)) left top/14px 1px no-repeat,linear-gradient(var(--paper),var(--paper)) left top/1px 14px no-repeat,linear-gradient(var(--paper),var(--paper)) right top/14px 1px no-repeat,linear-gradient(var(--paper),var(--paper)) right top/1px 14px no-repeat,linear-gradient(var(--paper),var(--paper)) left bottom/14px 1px no-repeat,linear-gradient(var(--paper),var(--paper)) left bottom/1px 14px no-repeat,linear-gradient(var(--paper),var(--paper)) right bottom/14px 1px no-repeat,linear-gradient(var(--paper),var(--paper)) right bottom/1px 14px no-repeat; }
+.participant-field { display:flex;align-items:center;gap:18px;border:1px solid #c4d0d040;min-height:48px;padding-left:17px;margin-bottom:24px; }
+.participant-field:focus-within { border-color:var(--orange); }
+.participant-field svg { width:20px;height:20px;flex-shrink:0;stroke-width:1.5; }
+.participant-field input { width:100%;min-width:0;background:transparent;border:0;outline:none;font:14px Consolas,monospace;color:var(--paper);padding:12px 0; }
+.participant-field input::placeholder { color:#8e969b; }
+.participant-password-toggle { background:none;border:0;min-width:48px;min-height:46px;display:grid;place-items:center; }
+.participant-submit { width:100%;height:53px;box-shadow:0 0 20px #ff65091a; }
+.participant-forgot { display:block;margin:8px 0 8px auto;min-height:32px;background:none;border:0;color:var(--muted);font-size:12px; }
+.participant-status { font-size:12px;color:#ffd0ac;line-height:1.5;margin:12px 0; }
+.participant-status[hidden] { display:none; }
+.participant-access-note { display:flex;align-items:flex-start;gap:20px;border-top:1px solid #c4d0d040;padding-top:22px;margin-top:10px; }
+.participant-access-note svg,.participant-back svg { width:20px;height:20px;flex-shrink:0; }
+.participant-access-note p { font-size:12px;line-height:1.7;margin:0; }
+.participant-access-note span { display:block;color:var(--muted); }
+.participant-access-note a { text-decoration:underline;text-underline-offset:3px; }
+.participant-back { display:flex;align-items:center;gap:20px;font-size:12px;min-height:44px;border-top:1px solid #bac5c815;margin-top:14px;padding-top:12px;color:var(--orange); }
+@media(max-width:1400px) { .participant-registration-dot { display:none; } .participant-header nav { gap:22px; } .participant-interface { width:35%; } .participant-wordmark span,.participant-wordmark strong { font-size:8.5vw; } .participant-wordmark p { font-size:10px; } }
+@media(max-width:1000px) { .participant-header { gap:15px;padding-inline:3%; } .participant-brand span { display:none; } .participant-header nav { gap:18px; } .participant-interface { width:44%;margin-right:4%; } .participant-curiosity,.participant-manifesto { display:none; } .participant-wordmark span,.participant-wordmark strong { font-size:10vw; } .participant-wordmark p { font-size:9px; } .participant-description { font-size:13px; } .participant-desktop-break { display:none; } .participant-globe { left:-67vw; } }
+@media(max-width:600px) { .participant-login { min-height:100svh; } .participant-header { height:124px;align-items:flex-start;padding:12px 5%;flex-wrap:wrap; } .participant-brand img { width:48px;height:48px; } .participant-header-actions { margin-left:auto;gap:8px; } .participant-header-actions .register { font-size:10px;height:44px;padding-inline:10px;gap:8px; } .participant-header-actions svg { width:14px; } .participant-header nav { position:absolute;top:72px;left:5%;gap:24px; font-size:11px; } .participant-environment { inset:124px 0 0;opacity:.32; } .participant-environment p,.participant-moon { display:none; } .participant-globe { width:1600px;height:1000px;left:-960px;top:30px; } .participant-monolith { left:0;width:100%;height:70%; } .participant-interface { margin:32px auto 40px;width:90%;max-width:470px; } .participant-wordmark span,.participant-wordmark strong { font-size:clamp(80px,24vw,125px); } .participant-wordmark p { font-size:11px; } .participant-interface h1 { font-size:clamp(17px,5vw,25px);margin-top:25px; } .participant-description { font-size:13px; } .participant-panel { padding:20px 16px; } .participant-field input { font-size:16px; } .participant-access-note { gap:12px; } .participant-access-note p { font-size:11px; } .participant-forgot { min-height:44px; } }
+/* Reference alignment; scoped to this route only. */
+.participant-environment p { z-index:2; }
+.participant-globe { top:-9vw; }
+.participant-globe .globe-stage { mask-image:linear-gradient(to bottom,transparent 0%,transparent 19%,#000 29%,#000 80%,transparent 96%); }
+.participant-moon { background:radial-gradient(circle at 95% 20%,transparent 0%,#0009 45%,#000 83%),url('/assets/moon-surface.jpg') center/cover; }
+.participant-wordmark { position:relative;padding-left:22px; }
+.participant-wordmark span,.participant-wordmark strong { transform:scaleX(1.22);transform-origin:left; }
+.participant-wordmark strong { margin-top:5px;background-image:linear-gradient(#ff590057,#ff590057),linear-gradient(#ff5900,#ff5900),url('/assets/distressed-metal.png');background-blend-mode:normal,multiply,normal; }
+.participant-wordmark p { position:absolute;right:0;bottom:5px; }
+.participant-interface h1,.participant-description { margin-left:22px; }
+.participant-interface h1 { margin-top:22px; }
+.participant-panel { margin-top:0; }
+.participant-monolith { filter:brightness(.65); }
+@media(max-width:1000px) { .participant-wordmark { padding-left:0; } .participant-interface h1,.participant-description { margin-left:0; } .participant-wordmark span,.participant-wordmark strong { transform:scaleX(1.06); } }
+@media(max-width:600px) { .participant-globe { top:30px; } .participant-wordmark p { font-size:10px; } }

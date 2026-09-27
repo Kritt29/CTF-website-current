@@ -1,4 +1,6 @@
 "use client";
+import LoginCTA from "../shared/LoginCTA";
+
 import { useRef } from "react";
 import { ArrowRight, Users, Layers, Trophy, Flag, Globe } from "lucide-react";
 import { VectorRegister } from "./VectorRegister";
@@ -66,6 +68,7 @@ function VectorNavigation() {
           <i className="vectors-status-dot" />
           EVENT DETAILS TO BE ANNOUNCED
         </span>
+        <LoginCTA />
         <VectorRegister />
       </div>
     </header>

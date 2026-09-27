@@ -12,7 +12,7 @@ Frontend for the DDC Capture the Flag event: a cinematic globe introduction, int
 | Journey | Page 01 → 02 and Page 02 → 03 transitions with reverse scrolling and reduced-motion support |
 | Responsive support | Mobile/tablet layouts, larger touch targets, shorter handoff ranges, and section navigation |
 
-**This repository implements the event frontend.** It does not implement a CTF competition backend, authentication, challenge hosting, scoring, leaderboard, or registration submission. FAQ and remaining pages are pending. The final CTF platform and hosting setup are separate decisions.
+**This repository includes the public website and an authenticated participant application.** Real cookie sessions, D1 accounts, a protected dashboard, persistent participant navigation, and saved server-assigned starting challenges are implemented. Scoring, submission judging, challenge environments, full leaderboard/rules, password recovery, and FAQ remain pending. See [participant setup and deployment requirements](docs/PARTICIPANT_PLATFORM.md).
 
 The approved desktop designs and six Challenge Vector artworks should be preserved unless a change is explicitly agreed with the team.
 
@@ -57,6 +57,8 @@ npm run lint
 - `/#challenge-vectors` — Page 02 within the journey.
 - `/#event-highlights` — Page 03 within the journey.
 - `/challenge-vectors` — standalone Page 02 for focused development and checks.
+- /login — platform login.
+- /dashboard, /challenges, /challenges/:challengeId, /submissions, /leaderboard, /rules — protected participant shell.
 
 Section navigation accounts for the scenes' scroll resting positions. FAQ remains unavailable.
 
@@ -78,11 +80,11 @@ Section navigation accounts for the scenes' scroll resting positions. FAQ remain
 
 ## Registration and event configuration
 
-No registration destination has been supplied yet. An unset URL shows an announcement notice when a CTA is activated; it does not submit data or create an account.
+All registration CTAs open the approved [CRYPTX registration page on Unstop](https://unstop.com/hackathons/cryptx-chaitanya-bharathi-institute-of-technology-cbit-hyderabad-1761452). Registration is handled externally; this frontend does not collect submissions. LOGIN opens `/login` and authenticates organizer-provisioned platform accounts through the backend.
 
-- **Pages 01 and 03:** set `event.registrationUrl` in `components/hero/content.ts`. Page 03 already imports this same config.
-- **Page 02:** currently has a separate `vectorEvent.registrationUrl` in `components/vectors/content.ts`. Set it to the same approved destination when registration becomes available. Registration config is not yet unified across all three pages.
-- **Page 03 countdown and details:** edit `components/highlights/content.ts`.
+- **All registration destinations:** edit `components/shared/registration.ts`. Hero, Challenge Vectors, and Event Highlights consume this single constant.
+- **Login:** `components/shared/LoginCTA.tsx` routes to `/login`; authenticated participants enter `/dashboard`.
+- **Shared event timing:** edit `lib/event.ts`. Page 03 non-timing details remain in `components/highlights/content.ts`.
 - **Page 02 descriptions and summary details:** edit `components/vectors/content.ts`.
 
 The countdown targets **October 12, 2026 at 00:00 India Standard Time (UTC+05:30)**. Midnight is the current interpretation of the date-only brief; update `startsAt` when the event time is confirmed. It uses the visitor's browser clock, updates once per second while nearby and visible, and stops at zero. Changing the date also requires checking its visible label and accessible text in `Countdown.tsx`.
@@ -135,3 +137,4 @@ Preserve the existing artwork and provenance notes:
 - [Page 03 background notes](components/highlights/ASSET_NOTES.md)
 
 The DDC logo is a crop of the supplied club mark, not a generated replacement. Earth maps use three-globe example assets; Earth lights and lunar textures come from Three.js examples. Coastlines use Natural Earth public-domain data. Archivo Black is bundled with its SIL Open Font License. See the asset notes and included license files when reusing or replacing these resources.
+

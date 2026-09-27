@@ -1,3 +1,4 @@
+import LoginCTA from "../shared/LoginCTA";
 import { Box, Clock3, Trophy, UserRound, UsersRound } from "lucide-react";
 import Countdown from "./Countdown";
 import HighlightsRegister from "./HighlightsRegister";
@@ -33,6 +34,7 @@ export default function EventHighlights() {
             <button disabled><span>04</span> FAQ</button>
           </nav>
           <div className="highlights-nav-status"><i /> REGISTRATION OPEN</div>
+          <LoginCTA />
           <HighlightsRegister className="highlights-nav-register" label="REGISTER NOW" />
         </header>
         <svg className="highlights-signal" data-scene-group="signal" viewBox="0 0 1672 940" preserveAspectRatio="none" aria-hidden="true">

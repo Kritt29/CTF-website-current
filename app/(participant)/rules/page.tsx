@@ -1,0 +1,2 @@
+import { requireParticipantPage } from "@/lib/server/auth";
+export default async function RulesPage(){await requireParticipantPage();return <section className="arena-route"><p className="arena-kicker">BEFORE YOU BEGIN</p><h1>RULES</h1><div className="arena-panel"><h2>Official rules pending</h2><p>The organizers have not published the competition rules, scoring policy, or final end time here yet.</p></div></section>;}

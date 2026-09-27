@@ -1,4 +1,5 @@
+import { registrationUrl } from "../shared/registration";
 export const event = {
-  registrationUrl: "",
+  registrationUrl,
   coordinates: { lat: 17.385, lon: 78.4867 },
 };
