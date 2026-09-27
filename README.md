@@ -1,140 +1,139 @@
-# DDC CTF — Digital Defence Club, CBIT
+# DDC CTF Platform
 
-Frontend for the DDC Capture the Flag event: a cinematic globe introduction, interactive challenge categories, and event highlights. Built with React, TypeScript, Vinext/Vite, Three.js, and GSAP.
+Custom Capture The Flag competition platform for Digital Defence Club, CBIT.
 
-## Current status
+## Overview
 
-| Section | Implemented |
-| --- | --- |
-| Page 01 — Enter the Grid | Globe/network scene, introduction, registration CTA, and scroll choreography |
-| Page 02 — Challenge Vectors | WEB, CRYPTO, PWN, REVERSE, FORENSICS, OSINT; artwork and detail dialogs |
-| Page 03 — Event Highlights | Monolith environment, live countdown, TBA event details, and registration CTAs |
-| Journey | Page 01 → 02 and Page 02 → 03 transitions with reverse scrolling and reduced-motion support |
-| Responsive support | Mobile/tablet layouts, larger touch targets, shorter handoff ranges, and section navigation |
+This repository contains the public DDC CTF event website and the authenticated participant interface. The public experience includes the cinematic Pages 01–03 journey. The participant application provides login, a protected dashboard, persistent competition navigation, and the foundation for server-assigned challenges.
 
-**This repository includes the public website and an authenticated participant application.** Real cookie sessions, D1 accounts, a protected dashboard, persistent participant navigation, and saved server-assigned starting challenges are implemented. Scoring, submission judging, challenge environments, full leaderboard/rules, password recovery, and FAQ remain pending. See [participant setup and deployment requirements](docs/PARTICIPANT_PLATFORM.md).
+Event registration is handled externally through Unstop. The custom DDC platform handles competition access and gameplay.
 
-The approved desktop designs and six Challenge Vector artworks should be preserved unless a change is explicitly agreed with the team.
+## Current features
 
-## Get started
+- Cinematic public landing website with the approved Page 01, Page 02, and Page 03 scenes.
+- Three.js globe/network scene, GSAP/ScrollTrigger choreography, Lenis integration, responsive layouts, and reduced-motion handling.
+- Participant login with bcrypt password verification and HttpOnly session cookies.
+- Persistent sessions restored through `/api/auth/me`; protected participant routes redirect unauthenticated visitors to `/login`.
+- Authenticated dashboard with participant identity, event countdown, assignment status, statistics, announcements, categories, and recent activity.
+- Persistent participant topbar across dashboard, challenges, challenge detail, submissions, leaderboard, and rules routes.
+- Server-side starting-challenge assignment that is saved and remains stable on refresh or concurrent starts.
+- Logout that invalidates the server session.
 
-Requirements: **Node.js 22.13.0 or newer**, npm, Git, and access to this private repository.
+Scoring, flag submission and validation, challenge environments, hints and penalties, leaderboard calculations, password recovery, admin tooling, and Unstop-to-platform account provisioning are not implemented yet.
+
+## Tech stack
+
+Frontend: React, TypeScript, Vinext/Vite, Three.js, GSAP/ScrollTrigger, Lenis, and Lucide icons.
+
+Backend: Vinext server routes running through the Cloudflare Vite/Wrangler integration, Cloudflare D1 with SQLite-compatible SQL, bcryptjs password hashing, and opaque server-side sessions stored as SHA-256 token hashes.
+
+## Project structure
+
+```text
+app/                  public and participant routes plus API handlers
+components/           public scenes, login UI, and participant UI
+db/                   Drizzle schema and SQL migrations
+lib/server/           D1 access, authentication, API helpers, and competition logic
+lib/participant/      shared participant types
+public/assets/        approved visual assets and textures
+scripts/              local database migration and provisioning helpers
+tests/                participant integration checks
+docs/                 participant platform setup and deployment notes
+```
+
+## Application routes
+
+```text
+/                         Public Pages 01–03 journey
+/challenge-vectors        Standalone Page 02 view
+/login                    Participant login
+/dashboard                Protected participant dashboard
+/challenges               Protected challenge catalogue
+/challenges/:challengeId Protected assigned challenge route
+/submissions              Protected submissions placeholder
+/leaderboard              Protected leaderboard placeholder
+/rules                    Protected rules placeholder
+```
+
+## Backend API
+
+```text
+POST /api/auth/login
+GET  /api/auth/me
+POST /api/auth/logout
+GET  /api/dashboard
+GET  /api/challenges
+POST /api/challenges/start
+```
+
+## Authentication
+
+Participants sign in with an organizer-provisioned username or email and password. Passwords are stored only as bcrypt hashes. Successful login creates a random opaque session token; only its SHA-256 hash is stored in D1 and the token is sent in an HttpOnly, SameSite cookie. The session survives refresh and route changes. Protected pages and APIs validate the server-side session. Logout deletes it.
+
+The participant provisioning command is local-only by design. The final production account provisioning workflow must be approved by the organizers.
+
+## Challenge flow
+
+```text
+Login → Dashboard → Start Challenge
+       → server selects an active starting challenge
+       → assignment and participant start time are persisted
+       → participant enters the assigned challenge route
+```
+
+Challenge execution, flag submission, judging, scoring, and progression are future work. Until a real active starting challenge is published, the start endpoint reports that none is available.
+
+## Local development
+
+Requirements: Node.js 22.13.0 or newer, npm, and Git.
 
 ```sh
-git clone https://github.com/Kritt29/DDC-website-frontend.git
-cd DDC-website-frontend
-git switch claude-smoothness
+git clone https://github.com/Kritt29/CTF-website-current.git
+cd CTF-website-current
 npm ci
+npm run db:migrate:local
 npm run dev
 ```
 
-Open **http://localhost:5173**. The `claude-smoothness` branch contains the mobile pass and recent transition work; use it until that work has been merged into `main`.
+Open `http://localhost:5173`.
 
-A clean clone uses the portable Vinext execution profile automatically. The current public-facing frontend needs no registration API keys or backend setup to run locally. Do not copy another developer's `node_modules`, `.sites-runtime`, or environment files.
+To provision a local participant, pass JSON through standard input to `npm run participant:create:local`. The required fields are `username`, `email`, `password`, `displayName`, and `participantId`. Do not put passwords in shell history or commit them. To publish a local starting challenge, use `npm run challenge:add:local`; see [docs/PARTICIPANT_PLATFORM.md](docs/PARTICIPANT_PLATFORM.md) for the exact fields and production requirements.
 
-### Commands
+Useful checks:
 
 ```sh
-# Local development
-npm run dev
-
-# TypeScript validation without writing incremental cache
 npx tsc --noEmit --incremental false
-
-# Production build
 npm run build
-
-# Lint (separate from the build)
 npm run lint
+node tests/participant.integration.mjs
 ```
 
-`npm start` runs the built Cloudflare Worker locally through Wrangler and expects `dist/server/wrangler.json` from a successful build. It is not a deployment command. Keep the existing framework scripts rather than replacing them with Next.js commands.
+`npm start` runs the built Worker locally after `npm run build`. The included `wrangler.local.json` and D1 database ID are local development configuration, not production infrastructure.
 
-## Routes
+## Environment variables
 
-- `/` — complete Pages 01–03 journey.
-- `/#home` — Page 01.
-- `/#challenge-vectors` — Page 02 within the journey.
-- `/#event-highlights` — Page 03 within the journey.
-- `/challenge-vectors` — standalone Page 02 for focused development and checks.
-- /login — platform login.
-- /dashboard, /challenges, /challenges/:challengeId, /submissions, /leaderboard, /rules — protected participant shell.
+The local app does not require application secrets or a `.env` file. Cloudflare deployment configuration supplies the D1 binding named `DB`. Configure the production D1 database and HTTPS deployment through the hosting environment; never commit credentials, tokens, or secret keys.
 
-Section navigation accounts for the scenes' scroll resting positions. FAQ remains unavailable.
+## Registration
 
-## Project map
+Event registration is handled separately through [Unstop](https://unstop.com/hackathons/cryptx-chaitanya-bharathi-institute-of-technology-cbit-hyderabad-1761452). The custom platform handles participant login and competition gameplay after organizer-approved account provisioning.
 
-| Path | Responsibility |
-| --- | --- |
-| `app/page.tsx` | Mounts the three sections |
-| `app/layout.tsx` | Shared document shell, metadata, and global styles |
-| `app/globals.css` | Existing design system and hero styling |
-| `app/mobile.css` | Mobile/tablet refinements, scoped to widths up to 1024px |
-| `components/hero/` | Page 01, Three.js globe, event config, and hero motion |
-| `components/journey/JourneyHandoff.tsx` | Master scene handoff progress and section navigation |
-| `components/journey/destination.ts` | Page 03 arrival choreography |
-| `components/journey/smoothScroll.ts` | Existing Lenis/GSAP integration; native touch scrolling |
-| `components/vectors/` | Page 02 layout, six artworks, content, dialogs, and local motion |
-| `components/highlights/` | Page 03 layout, isolated countdown, event config, and CTAs |
-| `public/assets/` | Local artwork, textures, logo, and font assets |
+## Security notes
 
-## Registration and event configuration
+- Platform authentication, participant records, assignments, and session state are server-controlled.
+- Client-side state is never trusted for authentication, scoring, or challenge validation.
+- Password hashes, session tokens, flags, answers, and signing secrets are not returned to the browser.
+- Intentionally vulnerable CTF challenges must run in isolated environments separate from platform authentication and data.
+- Mutating API requests enforce same-origin checks and login attempts are rate-limited.
 
-All registration CTAs open the approved [CRYPTX registration page on Unstop](https://unstop.com/hackathons/cryptx-chaitanya-bharathi-institute-of-technology-cbit-hyderabad-1761452). Registration is handled externally; this frontend does not collect submissions. LOGIN opens `/login` and authenticates organizer-provisioned platform accounts through the backend.
+## Current status and next work
 
-- **All registration destinations:** edit `components/shared/registration.ts`. Hero, Challenge Vectors, and Event Highlights consume this single constant.
-- **Login:** `components/shared/LoginCTA.tsx` routes to `/login`; authenticated participants enter `/dashboard`.
-- **Shared event timing:** edit `lib/event.ts`. Page 03 non-timing details remain in `components/highlights/content.ts`.
-- **Page 02 descriptions and summary details:** edit `components/vectors/content.ts`.
+- Complete isolated challenge engine and flag submission flow.
+- Add scoring, hints, penalties, and leaderboard calculations.
+- Add organizer/admin tooling and approved production account provisioning.
+- Confirm event end time and configure production D1/Cloudflare deployment.
+- Load-test production asset delivery and participant APIs before the event.
 
-The countdown targets **October 12, 2026 at 00:00 India Standard Time (UTC+05:30)**. Midnight is the current interpretation of the date-only brief; update `startsAt` when the event time is confirmed. It uses the visitor's browser clock, updates once per second while nearby and visible, and stops at zero. Changing the date also requires checking its visible label and accessible text in `Countdown.tsx`.
+## Registration CTA source
 
-Page 03 participants, challenges, duration, eligibility, and prize pool remain **TBA**. Do not replace them with invented numbers. Page 01 still contains approved legacy event copy such as “24 Hours” and “Limited Slots”; verify that copy against confirmed event details before launch.
-
-## Team workflow
-
-Ask the repository owner for collaborator access using your GitHub username, then accept the invitation. Use branches and pull requests to collaborate.
-
-```sh
-# Until the current work is merged into main
-git switch claude-smoothness
-git pull --ff-only origin claude-smoothness
-git switch -c feature/short-description
-
-# After making and checking your changes
-git add <changed-files>
-git commit -m "Describe the change"
-git push -u origin feature/short-description
-```
-
-Open a pull request against the agreed integration branch. Once `claude-smoothness` is merged, use `main` as the starting point and PR base instead. Check `git status` before switching branches; preserve uncommitted work. Avoid force-pushing shared branches.
-
-Include what changed, screenshots for visual work, and checks performed in each PR. Keep performance fixes, visual changes, and backend work separately reviewable. Never commit credentials, build output, or dependency folders.
-
-## Motion, accessibility, and performance
-
-The journey uses GSAP/ScrollTrigger and native sticky scene wrappers. Lenis smooths wheel input on supported fine-pointer devices; touch retains native scrolling. Mobile/tablet handoff distances are shorter, while the desktop choreography is retained. Do not add a second scroll-smoothing system or competing transform writers.
-
-Reduced motion bypasses the cinematic journey. Registration controls support keyboard activation, dialogs provide close controls, and the countdown is isolated from the rest of the React scene.
-
-### Verification performed
-
-- Browser-emulated widths: **320, 390, 768, 1024, and 1672px**.
-- Horizontal overflow, registration notices, all six challenge dialogs, and runtime errors.
-- Touch swipe input, section navigation, direct Page 03 anchors, forward/reverse scrolling, and reduced-motion changes.
-- TypeScript validation and production build passed for the mobile pass.
-
-The production build still reports a large-bundle warning. Browser emulation is not a substitute for testing actual iOS/Android devices. **150 concurrent visitors have not been load-tested**, and no hosting-capacity guarantee is implied. Profile production asset delivery, hosting limits, and lower-end mobile performance before the event.
-
-Pushing to GitHub does not itself publish the website. Coordinate production deployment and any load testing with the team separately.
-
-## Asset provenance
-
-Preserve the existing artwork and provenance notes:
-
-- [Generated material/environment notes](ASSET_NOTES.md)
-- [Challenge Vector reference assets](components/vectors/REFERENCE_ASSETS.md)
-- [Page 03 background notes](components/highlights/ASSET_NOTES.md)
-
-The DDC logo is a crop of the supplied club mark, not a generated replacement. Earth maps use three-globe example assets; Earth lights and lunar textures come from Three.js examples. Coastlines use Natural Earth public-domain data. Archivo Black is bundled with its SIL Open Font License. See the asset notes and included license files when reusing or replacing these resources.
-
+The shared registration destination is defined in `components/shared/registration.ts`. Do not duplicate or replace it with a new URL in individual components.
