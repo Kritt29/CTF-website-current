@@ -76,7 +76,9 @@ function HeroNavigation() {
         <a className="nav-item" href="#home" aria-current="page">
           <span>01</span>HOME
         </a>
-        {["CTF", "INFO", "FAQ"].map((label, i) => (
+        {["CTF", "INFO", "FAQ"].map((label, i) => i < 2 ? (
+          <a className="nav-item" key={label} href={i === 0 ? "#challenge-vectors" : "#event-highlights"}><span>0{i + 2}</span>{label}</a>
+        ) : (
           <button
             className="nav-item"
             key={label}

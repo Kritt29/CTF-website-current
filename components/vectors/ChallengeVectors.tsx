@@ -47,7 +47,9 @@ function VectorNavigation() {
         >
           <span>02</span>CTF
         </a>
-        {["INFO", "FAQ"].map((t, i) => (
+        {["INFO", "FAQ"].map((t, i) => i === 0 ? (
+          <a className="vectors-nav-item" href="/#event-highlights" key={t}><span>03</span>INFO</a>
+        ) : (
           <button
             className="vectors-nav-item"
             aria-disabled="true"

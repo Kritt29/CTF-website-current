@@ -231,9 +231,9 @@ export function useHeroMotion(
             const reveal = phase(0.1, 0.44, state.progress);
             hero.style.setProperty(
               "--globe-mask-start",
-              `${52 * (1 - reveal)}%`,
+              `${68 * (1 - reveal)}%`,
             );
-            hero.style.setProperty("--globe-mask-end", `${73 - 55 * reveal}%`);
+            hero.style.setProperty("--globe-mask-end", `${85 - 67 * reveal}%`);
           }
           bridge(
             state.progress,

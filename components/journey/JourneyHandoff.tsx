@@ -59,7 +59,8 @@ export default function JourneyHandoff() {
     media.add("(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)", () =>
       startSmoothScroll(),
     );
-    media.add("(prefers-reduced-motion: no-preference)", () => {
+    media.add({ animate: "(prefers-reduced-motion: no-preference)", compact: "(max-width: 1024px)" }, (context) => {
+      if (!context.conditions?.animate) return;
       const globe = hero.querySelector<HTMLElement>(".globe-stage")!;
       const bridge = hero.querySelector<HTMLElement>(".signal-bridge")!;
       const nav = hero.querySelector<HTMLElement>(".hero-nav")!;
@@ -71,7 +72,8 @@ export default function JourneyHandoff() {
       const veilStyle = styleWriter(veil);
       const artStyles = art.map(styleWriter);
       const destination = finale ? createDestination(finale, styleWriter) : null;
-      const travel = 1.4, departTravel = 1.6;
+      const compact = !!context.conditions?.compact;
+      const travel = compact ? .85 : 1.4, departTravel = compact ? .9 : 1.6;
       let height = hero.clientHeight, contentHeight = scene.offsetHeight, startPosition = 0;
       let departStart = 0, departDistance = 0;
       let settled: boolean | undefined, occluded: boolean | undefined, current = NaN;
@@ -244,8 +246,8 @@ export default function JourneyHandoff() {
       // in-page links and keyboard focus go to each scene's resting position.
       const restingPosition = (hash: string) =>
         hash === "#home" ? 0
-          : hash === "#challenge-vectors" ? startPosition + height * travel
-            : hash === "#event-highlights" && destination ? departStart + departDistance
+          : hash === "#challenge-vectors" ? Math.ceil(startPosition + height * travel)
+            : hash === "#event-highlights" && destination ? Math.ceil(departStart + departDistance)
               : null;
       const onLinkClick = (event: MouseEvent) => {
         if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -258,11 +260,19 @@ export default function JourneyHandoff() {
         scrollToY(target);
       };
       const onFocus = (event: FocusEvent) => {
-        if (departing < 1 && finale?.contains(event.target as Node)) scrollToY(departStart + departDistance);
+        if (departing < 1 && finale?.contains(event.target as Node)) scrollToY(Math.ceil(departStart + departDistance));
       };
+      const followLocation = () => {
+        const target = restingPosition(location.hash);
+        if (target !== null) scrollToY(target);
+      };
+      const anchorFrame = requestAnimationFrame(followLocation);
+      window.addEventListener("popstate", followLocation);
       document.addEventListener("click", onLinkClick);
       finale?.addEventListener("focusin", onFocus);
       return () => {
+        cancelAnimationFrame(anchorFrame);
+        window.removeEventListener("popstate", followLocation);
         document.removeEventListener("click", onLinkClick);
         finale?.removeEventListener("focusin", onFocus);
         ScrollTrigger.removeEventListener("scrollEnd", demoteAtRest);
