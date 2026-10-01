@@ -1,4 +1,5 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { sqliteTable, text, integer, index, primaryKey, uniqueIndex } from "drizzle-orm/sqlite-core";
 export const users = sqliteTable("users", {
  id: text("id").primaryKey(), username: text("username").notNull().unique(), email: text("email").notNull().unique(),
  passwordHash: text("password_hash").notNull(), displayName: text("display_name").notNull(), participantId: text("participant_id").notNull().unique(),
@@ -14,8 +15,23 @@ export const challenges = sqliteTable("challenges", {
  active: integer("active").notNull().default(0), starting: integer("starting").notNull().default(0),
 });
 export const participantChallenges = sqliteTable("participant_challenges", {
- userId: text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}), challengeId: text("challenge_id").notNull().references(()=>challenges.id),
+ userId: text("user_id").notNull().references(()=>users.id,{onDelete:"cascade"}), challengeId: text("challenge_id").notNull().references(()=>challenges.id),
  assignedAt: integer("assigned_at").notNull(), startedAt: integer("started_at").notNull(), solvedAt: integer("solved_at"),
-});
+},t=>[primaryKey({columns:[t.userId,t.challengeId]}),uniqueIndex("participant_one_active").on(t.userId).where(sql`${t.solvedAt} IS NULL`)]);
 export const announcements = sqliteTable("announcements", { id:text("id").primaryKey(), body:text("body").notNull(), publishedAt:integer("published_at").notNull() });
+export const web101Progress = sqliteTable("web101_progress", {
+ userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),archiveReachedAt:integer("archive_reached_at").notNull(),
+});
+export const web102Progress = sqliteTable("web102_progress", {
+ userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),
+ stage:integer("stage").notNull().default(0),updatedAt:integer("updated_at").notNull(),
+});
+export const submissions = sqliteTable("submissions", {
+ id: text("id").primaryKey(), userId: text("user_id").notNull().references(()=>users.id,{onDelete:"cascade"}),
+ challengeId: text("challenge_id").notNull().references(()=>challenges.id),
+ isCorrect: integer("is_correct",{mode:"boolean"}).notNull(), submittedAt: integer("submitted_at").notNull(),
+},t=>[index("submissions_user_time").on(t.userId,t.submittedAt)]);
+export const submissionLimits = sqliteTable("submission_limits", {
+ userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),nextAllowedAt:integer("next_allowed_at").notNull(),
+});
 export const authLimits = sqliteTable("auth_limits", { key:text("key").primaryKey(), attempts:integer("attempts").notNull(), resetsAt:integer("resets_at").notNull() },t=>[index("auth_limits_expiry").on(t.resetsAt)]);

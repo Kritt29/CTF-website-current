@@ -19,7 +19,7 @@ Event registration is handled externally through Unstop. The custom DDC platform
 - Server-side starting-challenge assignment that is saved and remains stable on refresh or concurrent starts.
 - Logout that invalidates the server session.
 
-Scoring, flag submission and validation, challenge environments, hints and penalties, leaderboard calculations, password recovery, admin tooling, and Unstop-to-platform account provisioning are not implemented yet.
+Four challenges are playable inside the participant shell: WEB-101 — Ghost 404 (source/storage/archive investigation) and WEB-102 — Wrong Key, Right State (participant-seeded browser-state puzzle). Their shared submission flow validates on the server, records attempts privately, and persists the first solve. Scoring, further challenge environments, hints and penalties, leaderboard calculations, password recovery, admin tooling, and Unstop-to-platform account provisioning are not implemented yet. FORENSICS-103 — Cold Boot: Shattered Cache is a static memory-image investigation reached through NEXT CHALLENGE. CRYPTO-104 — Dead Drop 64: Receiver’s Copy serves a privately prebuilt evidence archive, also reached through NEXT CHALLENGE ([setup notes](docs/CRYPTO104.md)). Organizer solution notes are kept outside this public repository.
 
 ## Tech stack
 
@@ -50,7 +50,7 @@ docs/                 participant platform setup and deployment notes
 /dashboard                Protected participant dashboard
 /challenges               Protected challenge catalogue
 /challenges/:challengeId Protected assigned challenge route
-/submissions              Protected submissions placeholder
+/submissions              Flag entry and private attempt history
 /leaderboard              Protected leaderboard placeholder
 /rules                    Protected rules placeholder
 ```
@@ -64,6 +64,9 @@ POST /api/auth/logout
 GET  /api/dashboard
 GET  /api/challenges
 POST /api/challenges/start
+POST /api/challenges/next
+GET  /api/submissions
+POST /api/submissions
 ```
 
 ## Authentication
@@ -81,7 +84,7 @@ Login → Dashboard → Start Challenge
        → participant enters the assigned challenge route
 ```
 
-Challenge execution, flag submission, judging, scoring, and progression are future work. Until a real active starting challenge is published, the start endpoint reports that none is available.
+Migration `0002_web101.sql` publishes WEB-101 as a starting challenge. Its inspectable HTML environment is playable after configuring the private server-side flag. Migration `0004_submissions.sql` adds attempt history and submission throttling. Participants can submit through `/submissions?challenge=WEB-101`; correctness is checked against the server secret and the first solve persists atomically with the attempt. Scoring remains future work. Migration 0006_challenge_progression.sql preserves assignments while enabling multiple completed challenges and one current challenge per participant. Solves show completion; explicit NEXT CHALLENGE selects another eligible unsolved challenge server-side. Existing participant assignments are preserved by migrations and refreshes. Migration `0007_forensics103.sql` adds FORENSICS-103 as an active non-starting challenge; its evidence image is generated server-side from `FORENSICS103_FLAG` (`node scripts/generate-forensics103.mjs` writes a local copy). Migration `0008_crypto104.sql` adds CRYPTO-104 the same way; its evidence is staged at build time from a private directory (see `docs/CRYPTO104.md`).
 
 ## Local development
 
@@ -112,7 +115,7 @@ node tests/participant.integration.mjs
 
 ## Environment variables
 
-The local app does not require application secrets or a `.env` file. Cloudflare deployment configuration supplies the D1 binding named `DB`. Configure the production D1 database and HTTPS deployment through the hosting environment; never commit credentials, tokens, or secret keys.
+Cloudflare deployment configuration supplies the D1 binding named `DB`. `WEB101_FLAG`, `WEB102_FLAG`, `FORENSICS103_FLAG`, and `CRYPTO104_FLAG` are separate server-only challenge flags: set them in ignored `.dev.vars` for local development and as Worker secrets in production. `.env.example` documents placeholders only. Configure the production D1 database and HTTPS deployment through the hosting environment; never commit credentials, flags, tokens, or secret keys.
 
 ## Registration
 
@@ -122,13 +125,13 @@ Event registration is handled separately through [Unstop](https://unstop.com/hac
 
 - Platform authentication, participant records, assignments, and session state are server-controlled.
 - Client-side state is never trusted for authentication, scoring, or challenge validation.
-- Password hashes, session tokens, flags, answers, and signing secrets are not returned to the browser.
+- Password hashes and unrelated secrets are never returned to the browser. Session tokens are confined to HttpOnly cookies. A challenge flag is returned only at its intended authenticated discovery endpoint after assignment verification; never bundle flags into frontend code.
 - Intentionally vulnerable CTF challenges must run in isolated environments separate from platform authentication and data.
 - Mutating API requests enforce same-origin checks and login attempts are rate-limited.
 
 ## Current status and next work
 
-- Complete isolated challenge engine and flag submission flow.
+- Add validators and environments for further challenges (progression already assigns any active, unsolved challenge).
 - Add scoring, hints, penalties, and leaderboard calculations.
 - Add organizer/admin tooling and approved production account provisioning.
 - Confirm event end time and configure production D1/Cloudflare deployment.
