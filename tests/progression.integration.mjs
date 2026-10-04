@@ -13,7 +13,7 @@ const dir=mkdtempSync(join(tmpdir(),'ddc-progress-')),file=join(dir,'fixture.sql
 const q=v=>"'"+String(v).replaceAll("'","''")+"'";
 function sql(value,ok=true){writeFileSync(file,value);const r=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','d1','execute','DB','--local','--config','wrangler.local.json','--file',file],{encoding:'utf8'});assert.equal(r.status===0,ok,'Database invariant');}
 const vars=readFileSync('.dev.vars','utf8');
-const flags=Object.fromEntries([['WEB-101','WEB101'],['WEB-102','WEB102'],['FORENSICS-103','FORENSICS103'],['CRYPTO-104','CRYPTO104']].map(([id,env])=>[id,vars.match(new RegExp('^'+env+'_FLAG="([^"]+)"','m'))?.[1]]));
+const flags=Object.fromEntries([['WEB-101','WEB101'],['WEB-102','WEB102'],['FORENSICS-103','FORENSICS103'],['CRYPTO-104','CRYPTO104'],['CRYPTO-105','CRYPTO105']].map(([id,env])=>[id,vars.match(new RegExp('^'+env+'_FLAG="([^"]+)"','m'))?.[1]]));
 let checks=0,browser;
 const check=(x,m)=>{assert.ok(x,m);checks++;};
 async function req(path,cookie='',method='GET',body,origin=base){return fetch(base+path,{method,redirect:'manual',headers:{Origin:origin,Cookie:cookie,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});}
@@ -59,8 +59,8 @@ try{
  await page.locator('article').filter({hasText:'WEB-102'}).getByText('AVAILABLE · NOT ASSIGNED',{exact:true}).waitFor();
  check(true,'Catalogue shows completed and available');
  await page.getByRole('button',{name:'NEXT CHALLENGE',exact:true}).click();
- // NEXT picks randomly among eligible challenges (WEB-102, FORENSICS-103, CRYPTO-104, ...); every real one must be playable.
- await page.waitForURL(url=>/\/challenges\/(WEB-102|FORENSICS-103|CRYPTO-104)$/.test(url.pathname));
+ // NEXT picks randomly among eligible challenges (WEB-102, FORENSICS-103, CRYPTO-104, CRYPTO-105, ...); every real one must be playable.
+ await page.waitForURL(url=>/\/challenges\/(WEB-102|FORENSICS-103|CRYPTO-104|CRYPTO-105)$/.test(url.pathname));
  const second=decodeURIComponent(new URL(page.url()).pathname.split('/').pop());if(process.env.PROGRESSION_TRACE)console.log('second:',second);
  if(second==='WEB-102'){check(await page.locator('iframe').count()===1,'Next button opens playable WEB-102');check((await req('/api/challenge-env/web-102/index',cookie)).status===200,'WEB-102 environment authorized');}
  else{await page.getByRole('link',{name:'DOWNLOAD EVIDENCE →'}).waitFor();check((await req('/api/challenge-env/'+second.toLowerCase()+'/evidence',cookie)).status===200,'Next button opens playable '+second);}

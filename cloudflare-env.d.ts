@@ -5,6 +5,7 @@ declare namespace Cloudflare {
     WEB102_FLAG?: string;
     FORENSICS103_FLAG?: string;
     CRYPTO104_FLAG?: string;
+    CRYPTO105_FLAG?: string;
     BUCKET?: R2Bucket;
   }
 }

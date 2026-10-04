@@ -6,6 +6,7 @@ import { web101Flag } from "./web101";
 import { web102Flag } from "./web102";
 import { forensics103Flag } from "./forensics103";
 import { crypto104Flag } from "./crypto104";
+import { crypto105Flag } from "./crypto105";
 
 export async function submissionHistory(userId: string) {
   const rows = await database().prepare(`SELECT s.id,c.challenge_code AS challengeId,s.is_correct AS isCorrect,s.submitted_at AS submittedAt
@@ -27,7 +28,7 @@ export async function submitFlag(userId: string, body: unknown) {
   const assigned=await database().prepare('SELECT solved_at AS solvedAt FROM participant_challenges WHERE user_id=? AND challenge_id=?').bind(userId,challenge.id).first<{solvedAt:number|null}>();
   if(!assigned) throw new ApiError(403,'This challenge is not assigned to you.');
   if(assigned.solvedAt!==null) return {correct:true,alreadySolved:true,message:'Challenge already solved.'};
-  const validators:Record<string,()=>string>={'WEB-101':web101Flag,'WEB-102':web102Flag,'FORENSICS-103':forensics103Flag,'CRYPTO-104':crypto104Flag};
+  const validators:Record<string,()=>string>={'WEB-101':web101Flag,'WEB-102':web102Flag,'FORENSICS-103':forensics103Flag,'CRYPTO-104':crypto104Flag,'CRYPTO-105':crypto105Flag};
   const validator=validators[challenge.code]??null;
   if(!validator) throw new ApiError(409,'Submissions are not available for this challenge yet.');
   const hash=(value:string)=>crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));

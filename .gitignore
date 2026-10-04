@@ -48,6 +48,6 @@ next-env.d.ts
 /work/
 *.tsbuildinfo
 
-# CRYPTO-104: generated server-only evidence module and the local private-input pointer.
+# CRYPTO-104/105: generated server-only evidence modules and the local private-input pointer.
 /lib/server/generated/*.js
 /.evidence.local.json

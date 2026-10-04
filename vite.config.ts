@@ -38,6 +38,7 @@ const localBindingConfig = {
 export default defineConfig(async () => {
   // Stage privately prebuilt challenge evidence into an ignored server-only module.
   (await import("./scripts/package-crypto104.mjs")).packageCrypto104();
+  (await import("./scripts/package-crypto105.mjs")).packageCrypto105();
 
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
   process.env.CLOUDFLARE_CF_FETCH_ENABLED ??= "false";
