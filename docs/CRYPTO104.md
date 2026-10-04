@@ -30,6 +30,7 @@ The flag commitment is SHA-256 over the UTF-8 bytes of `DDC|CRYPTO-104|flag|` fo
 2. Point the build at that directory with either:
    - the `CRYPTO104_EVIDENCE_DIR` environment variable at build/dev time, or
    - the ignored `.evidence.local.json`: `{"CRYPTO104_EVIDENCE_DIR": "<absolute path>"}`.
+   If neither is set, the packager falls back to the committed `evidence/crypto-104/`.
 3. `vite.config.ts` runs the packager on every `npm run dev` and `npm run build`. You can also run it by hand with `node scripts/package-crypto104.mjs`.
 4. Configure the matching flag:
    - locally: `CRYPTO104_FLAG="DDC{...}"` in the ignored `.dev.vars`, then restart the dev server
@@ -37,6 +38,8 @@ The flag commitment is SHA-256 over the UTF-8 bytes of `DDC|CRYPTO-104|flag|` fo
 5. Apply migrations: `npm run db:migrate:local` locally. Use the normal hosting migration path in production.
 
 If no directory is configured, the packager emits an unavailable module, and the build and the other challenges keep working. If a directory is configured but the ZIP does not match its attestation, the build stops with an error.
+
+The participant-facing `dead-drop-64.zip` and `dead-drop-64.attestation.json` (archive digest and flag commitment only, no flag) are committed in `evidence/crypto-104/`, so a fresh clone stages the evidence without any private directory. The flag is never committed: each checkout or deployment still needs `CRYPTO104_FLAG`. After regenerating the package, copy both new files into `evidence/crypto-104/` and commit them together with the flag rotation.
 
 ## Flag rotation
 

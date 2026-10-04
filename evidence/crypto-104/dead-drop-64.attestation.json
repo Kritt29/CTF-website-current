@@ -1,0 +1,8 @@
+{
+  "format": "DDC-CRYPTO104-ATTESTATION/1",
+  "artifactVersion": "DD64-ARTIFACT/1",
+  "archive": "dead-drop-64.zip",
+  "archiveBytes": 12028,
+  "archiveSha256": "83e1bbde8d3630108e6cf5c9d2ac841317a617f1de483f11b4173e41644918ec",
+  "flagCommitment": "4b56f52a8a0bccf158608eba448f3ad1d40e6b9ab7c9f4ff23e5cef8d9e2723d"
+}

@@ -1,0 +1,8 @@
+{
+  "format": "DDC-CRYPTO105-ATTESTATION/1",
+  "artifactVersion": "SC-ARTIFACT/1",
+  "archive": "shift-change.zip",
+  "archiveBytes": 3310,
+  "archiveSha256": "27d393fd67e3dc21dd37b670c116114942a01bb1967ef17bc40db52a082862e3",
+  "flagCommitment": "5b3a5c819777f4f0b5a05feb267908be5b53ea315365b1aced80be482f81c3f2"
+}

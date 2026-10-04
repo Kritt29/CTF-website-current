@@ -1,7 +1,8 @@
 // Generic build-time packager for privately prebuilt CRYPTO-104 evidence. It holds no puzzle logic:
 // it checks an immutable ZIP against its private attestation and copies both into an ignored,
 // server-only module. Without staged input it emits an "unavailable" module so builds still work.
-// Input directory: CRYPTO104_EVIDENCE_DIR, else the ignored .evidence.local.json. See docs/CRYPTO104.md.
+// Input directory: CRYPTO104_EVIDENCE_DIR, else the ignored .evidence.local.json, else the committed
+// evidence/crypto-104/. See docs/CRYPTO104.md.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -13,10 +14,13 @@ const FORMAT = "DDC-CRYPTO104-ATTESTATION/1";
 const VERSIONS = ["DD64-ARTIFACT/1"];
 const output = new URL("../lib/server/generated/crypto104-evidence.js", import.meta.url);
 const localConfig = new URL("../.evidence.local.json", import.meta.url);
+const committedDir = fileURLToPath(new URL("../evidence/crypto-104/", import.meta.url));
 
 function inputDirectory() {
   if (process.env.CRYPTO104_EVIDENCE_DIR) return process.env.CRYPTO104_EVIDENCE_DIR;
-  if (existsSync(localConfig)) return JSON.parse(readFileSync(localConfig, "utf8")).CRYPTO104_EVIDENCE_DIR;
+  const local = existsSync(localConfig) ? JSON.parse(readFileSync(localConfig, "utf8")).CRYPTO104_EVIDENCE_DIR : undefined;
+  if (local) return local;
+  if (existsSync(committedDir)) return committedDir;
 }
 
 export function packageCrypto104() {

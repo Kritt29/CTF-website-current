@@ -28,11 +28,14 @@ The flag commitment is SHA-256 over `DDC|CRYPTO-105|flag|` followed immediately 
 
 1. Organizers generate the package offline with the private tooling. The output is `shift-change.zip` and `shift-change.attestation.json`, in a private directory outside this checkout. Run the private artifact tests and the independent solver before staging.
 2. Point the build at that directory with `CRYPTO105_EVIDENCE_DIR`, or the `CRYPTO105_EVIDENCE_DIR` key in the ignored `.evidence.local.json`.
+   If neither is set, the packager falls back to the committed `evidence/crypto-105/`.
 3. `npm run dev` and `npm run build` run the packager automatically (`node scripts/package-crypto105.mjs` by hand).
 4. Configure the matching flag: `CRYPTO105_FLAG="DDC{...}"` in the ignored `.dev.vars` locally; `wrangler secret put CRYPTO105_FLAG` in production.
 5. Apply migrations: `npm run db:migrate:local` locally; the normal hosting migration path in production.
 
 Without a configured directory the challenge reports unavailable and everything else keeps working. A directory whose ZIP does not match its attestation stops the build.
+
+The participant-facing `shift-change.zip` and `shift-change.attestation.json` (archive digest and flag commitment only, no flag) are committed in `evidence/crypto-105/`, so a fresh clone stages the evidence without any private directory. The flag is never committed: each checkout or deployment still needs `CRYPTO105_FLAG`. After regenerating the package, copy both new files into `evidence/crypto-105/` and commit them together with the flag rotation.
 
 ## Flag rotation
 

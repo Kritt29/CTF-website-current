@@ -14,7 +14,7 @@ const base = process.env.TEST_BASE_URL || 'http://localhost:5173';
 assert.ok(['localhost','127.0.0.1'].includes(new URL(base).hostname), 'Run against local development only');
 const unavailable = process.env.CRYPTO104_EXPECT_UNAVAILABLE === '1';
 const flag = readFileSync('.dev.vars','utf8').match(/^CRYPTO104_FLAG="([^"]+)"/m)?.[1];
-const stagedDir = process.env.CRYPTO104_EVIDENCE_DIR || (existsSync('.evidence.local.json') ? JSON.parse(readFileSync('.evidence.local.json','utf8')).CRYPTO104_EVIDENCE_DIR : null);
+const stagedDir = process.env.CRYPTO104_EVIDENCE_DIR || (existsSync('.evidence.local.json') ? JSON.parse(readFileSync('.evidence.local.json','utf8')).CRYPTO104_EVIDENCE_DIR : null) || (existsSync('evidence/crypto-104') ? 'evidence/crypto-104' : null);
 let checks = 0;
 const check = (condition,label) => {assert.ok(condition,label);checks++;};
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
