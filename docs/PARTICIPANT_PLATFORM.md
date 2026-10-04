@@ -5,12 +5,12 @@ The participant area uses the existing Vinext Cloudflare Worker and D1 binding `
 ## Local setup
 
 1. `npm ci`
-2. `npm run db:migrate:local`
-3. `npm run dev`
-4. Provision an organizer-approved account using `npm run participant:create:local`. The command reads a JSON object from standard input with `username`, `email`, `password`, `displayName`, and `participantId`. Supply a unique password (12 characters minimum, 72 UTF-8 bytes maximum) through a secure input mechanism. Do not put passwords in shell arguments, source files, chat, or version control. The command hashes with bcrypt (cost 12); only the hash reaches D1.
+2. `npm run setup` — applies local migrations, then interactively creates a local participant (username, optional display name, hidden password with confirmation; email and participant ID are generated). `npm run db:migrate:local` applies migrations only.
+3. `npm run dev`, then sign in at `http://localhost:5173/login`.
+4. For scripted provisioning, use the lower-level `npm run participant:create:local` (it shares `npm run setup`'s validation and hashing). The command reads a JSON object from standard input with `username`, `email`, `password`, `displayName`, and `participantId`. Supply a unique password (12 characters minimum, 72 UTF-8 bytes maximum) through a secure input mechanism. Do not put passwords in shell arguments, source files, chat, or version control. The command hashes with bcrypt (cost 12); only the hash reaches D1.
 5. Publish a real starting challenge using `npm run challenge:add:local`, again JSON on standard input: `id` (lowercase slug), `challengeCode`, `title`, `category`, `difficulty`, `description`, `active: true`, `starting: true`. Categories: WEB, CRYPTO, PWN, REVERSE, FORENSICS, OSINT. Omitted booleans default false.
 
-These administrative commands only modify local D1. No accounts, passwords, or announcements are seeded. Migrations publish the implemented WEB-101 and WEB-102 challenges as active/starting-eligible. The final organizer/Unstop provisioning process remains undecided. Both challenges need their separate server-side flag secret configured.
+These commands only modify local D1. No accounts, passwords, or announcements are seeded. Migrations publish the implemented WEB-101 and WEB-102 challenges as active/starting-eligible. The final organizer/Unstop provisioning process remains undecided. Both challenges need their separate server-side flag secret configured.
 
 ## Production setup still required
 
