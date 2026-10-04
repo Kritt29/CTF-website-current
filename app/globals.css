@@ -258,16 +258,6 @@ a:focus-visible {
   background-image: url("/assets/distressed-metal.png");
   background-size: 760px;
 }
-.title-ctf {
-  font-style: italic;
-  background-color: var(--orange);
-  background-image:
-    linear-gradient(#ff6509, #ff6509), url("/assets/distressed-metal.png");
-  background-blend-mode: multiply;
-  margin-top: -3px;
-  margin-left: -0.022em;
-  filter: drop-shadow(0 0 7px #ff650965) drop-shadow(0 0 22px #ff560036);
-}
 .title-composition {
   position: relative;
 }
@@ -668,9 +658,6 @@ a:focus-visible {
     transform: scaleX(1.12);
     background-size: 320px;
   }
-  .title-ctf {
-    margin-top: 5px;
-  }
   .manifesto {
     left: auto;
     right: 5px;
@@ -848,10 +835,6 @@ a:focus-visible {
   font-weight: 400;
   border-color: #ff6a00;
 }
-.title-ctf {
-  background-image:
-    linear-gradient(#ff5b00, #ff5b00), url("/assets/distressed-metal.png");
-}
 .system-label {
   background: #01040580;
   background-image:
@@ -902,9 +885,6 @@ a:focus-visible {
     font-size: clamp(100px, 27vw, 170px);
     line-height: 0.84;
   }
-  .title-ctf {
-    margin-top: 5px;
-  }
   .system-label {
     font-size: 10px;
   }
@@ -919,21 +899,6 @@ a:focus-visible {
   }
 }
 
-.title-ddc {
-  background-image:
-    linear-gradient(110deg, #ffffff55, #ffffff16),
-    url("/assets/distressed-metal.png");
-}
-.title-ctf {
-  background-image:
-    linear-gradient(#ff590057, #ff590057), linear-gradient(#ff5900, #ff5900),
-    url("/assets/distressed-metal.png");
-  background-blend-mode: normal, multiply, normal;
-  background-position:
-    0 0,
-    0 0,
-    -100px -260px;
-}
 .hero:after {
   opacity: 0.68;
 }
@@ -978,16 +943,6 @@ a:focus-visible {
 }
 /* Optical alignment measured against the approved reference. */
 @media (min-width: 1201px) {
-  .title-ddc {
-    transform: scaleX(1.14);
-    margin-left: -0.078em;
-  }
-  .title-ctf {
-    font-size: 0.94em;
-    transform: scaleX(1.16);
-    margin-left: -0.145em;
-    margin-top: 3px;
-  }
   .manifesto {
     left: 65%;
     line-height: 1.3;
@@ -1170,4 +1125,80 @@ html[data-hero-motion="boot"]
   .handoff-boundary {
     display: none;
   }
+}
+/* CryptX event branding: one distressed-metal line, CRYPT in silver, X in orange. */
+.title.title-cryptx {
+  display: flex;
+  width: max-content;
+  max-width: none;
+  /* Occupies the old two-line title's height so the content below keeps its position. */
+  margin-top: 0.81em;
+  margin-left: -0.06em;
+  /* Condensed so the X and its glow stay inside .title-composition, which the intro and
+     scroll motion clip to. */
+  transform: scaleX(0.83);
+  transform-origin: left bottom;
+}
+.title-cryptx .title-line {
+  transform: none;
+  padding-right: 0;
+}
+.title-crypt {
+  background-image:
+    linear-gradient(110deg, #ffffff55, #ffffff16),
+    url("/assets/distressed-metal.png");
+}
+/* --x-heat drives the intro ignition (0 = cold metal, 1 = resting orange, >1 = flare).
+   No `filter` here: on this text-clipped fill it renders an opaque box while scrolling. */
+.title-x {
+  --x-heat: 1;
+  --x-fill: color-mix(
+    in srgb,
+    #ff5900 calc(min(var(--x-heat), 1) * 100%),
+    #d9dcd8
+  );
+  position: relative;
+  padding-right: 0.06em;
+  background-color: var(--orange);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, #ff590057 calc(min(var(--x-heat), 1) * 100%), transparent),
+      color-mix(in srgb, #ff590057 calc(min(var(--x-heat), 1) * 100%), transparent)
+    ),
+    linear-gradient(var(--x-fill), var(--x-fill)),
+    url("/assets/distressed-metal.png");
+  background-blend-mode: normal, multiply, normal;
+  background-position:
+    0 0,
+    0 0,
+    -100px -260px;
+}
+/* Glow drawn by a shadow-only copy of the glyph behind the X. */
+.title-x::before {
+  content: "X";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: transparent;
+  text-shadow:
+    0 0 7px rgb(255 101 9 / calc(0.4 * var(--x-heat))),
+    0 0 22px rgb(255 86 0 / calc(0.21 * var(--x-heat)));
+}
+.title-cryptx ~ .manifesto {
+  top: calc(100% + 14px);
+  bottom: auto;
+}
+@media (max-width: 700px) {
+  /* Phones have no room beside the single-line title; use the gap above it instead. */
+  .title-cryptx ~ .manifesto {
+    top: auto;
+    bottom: calc(100% + 10px);
+  }
+}
+/* The journey handoff's inline `scale` makes #hero-content its own layer, which let the
+   atmosphere overlay paint over the hero copy. Lift it above the overlay and globe only
+   (it stays below the signal bridge and labels). Reduced motion never gets this class. */
+.journey-departure #hero-content {
+  position: relative;
+  z-index: 1;
 }

@@ -1,10 +1,10 @@
-# DDC CTF Platform
+# CryptX CTF Platform
 
-Custom Capture The Flag competition platform for Digital Defence Club, CBIT.
+Custom Capture The Flag competition platform for CryptX, organised by Digital Defence Club (DDC), CBIT.
 
 ## Overview
 
-This repository contains the public DDC CTF event website and the authenticated participant interface. The public experience includes the cinematic Pages 01–03 journey. The participant application provides login, a protected dashboard, persistent competition navigation, and the foundation for server-assigned challenges.
+This repository contains the public CryptX event website and the authenticated participant interface. The public experience includes the cinematic Pages 01–03 journey. The participant application provides login, a protected dashboard, persistent competition navigation, and the foundation for server-assigned challenges.
 
 Event registration is handled externally through Unstop. The custom DDC platform handles competition access and gameplay.
 

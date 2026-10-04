@@ -67,7 +67,7 @@ function reportDuplicate(username){
 }
 
 async function main(){
- console.log('DDC CTF local setup (local development database only)\n');
+ console.log('CryptX local setup (local development database only)\n');
  console.log('Applying local database migrations...');
  migrateLocalDatabase({quiet:true});
 

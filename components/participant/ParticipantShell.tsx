@@ -22,7 +22,7 @@ export default function ParticipantShell({children}:{children:ReactNode}) {
  async function logout(){setBusy(true);try{const response=await fetch('/api/auth/logout',{method:'POST'});if(!response.ok)throw new Error();setAuth(null);router.replace('/login');}catch{setError('Logout failed. Please try again.');}finally{setBusy(false);}}
  return <div className="arena-app">
   <header className="arena-topbar" data-participant-topbar>
-   <Link href="/dashboard" className="arena-brand"><img src="/assets/ddc-logo-reference.png" width="64" height="62" alt="DDC"/><span>DIGITAL DEFENCE CLUB<small>CBIT · DDC CTF</small></span></Link>
+   <Link href="/dashboard" className="arena-brand"><img src="/assets/ddc-logo-reference.png" width="64" height="62" alt="DDC"/><span>DIGITAL DEFENCE CLUB<small>CBIT · CRYPTX</small></span></Link>
    <nav aria-label="Participant navigation">{routes.map(([label,href])=><Link key={href} href={href} aria-current={pathname===href||href==='/challenges'&&pathname.startsWith('/challenges/')?'page':undefined}>{label}</Link>)}</nav>
    {auth&&<><EventClock event={auth.event}/><details className="arena-profile"><summary><UserRound/><span>{auth.participant.displayName}<small>#{auth.participant.participantId}</small></span><ChevronDown/></summary><div><p>{auth.participant.email}</p><button type="button" onClick={logout} disabled={busy}><LogOut size={16}/>{busy?'Signing out…':'Log out'}</button><Link href="/">Public website ↗</Link></div></details></>}
   </header>

@@ -3,7 +3,7 @@ import "./globals.css";
 import "./mobile.css";
 
 export const metadata: Metadata = {
-  title: "DDC CTF — Enter the Grid",
+  title: "CryptX — Enter the Grid",
   description:
     "Same curiosity. Higher privileges. A 24-hour Capture the Flag event by Digital Defence Club, CBIT, Hyderabad.",
   other: {

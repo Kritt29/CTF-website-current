@@ -112,9 +112,9 @@ function HeroTypography() {
         HIGHER PRIVILEGES.
       </p>
       <div className="title-composition">
-        <h1 className="title" aria-label="DDC CTF">
-          <span className="title-line title-ddc">DDC</span>
-          <span className="title-line title-ctf">CTF</span>
+        <h1 className="title title-cryptx" aria-label="CryptX">
+          <span className="title-line title-crypt">CRYPT</span>
+          <span className="title-line title-x">X</span>
         </h1>
         <div className="manifesto">
           THINK
@@ -169,7 +169,7 @@ export default function HeroScreen() {
           <section
             className="hero"
 
-            aria-label="DDC CTF — Enter the Grid"
+            aria-label="CryptX — Enter the Grid"
           >
             <div className="edge-lines" />
             <HeroNavigation />

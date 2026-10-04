@@ -218,7 +218,7 @@ export default function ChallengeVectors() {
         </div>
         <footer className="vectors-footer">
           <span>
-            DDC CTF ’26
+            CRYPTX ’26
             <br />
             BUILD　/　SOLVE　/　WIN
           </span>

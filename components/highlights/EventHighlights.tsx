@@ -54,7 +54,7 @@ export default function EventHighlights() {
           <div id="event-registration-details" tabIndex={-1}><p>DETAILS TO BE ANNOUNCED SOON.</p><small>STAY TUNED FOR UPDATES.</small></div>
         </div>
         <div className="highlights-side" aria-hidden="true">A<br/>SAFER<br/>TOMORROW<span>BUILT FOR<br/>BRIGHTER<br/>DEFENCES</span></div>
-        <footer className="highlights-footer"><span>PEOPLE × IDEAS × EXPLOITS × IMPACT <i /></span><span>DDC CTF ’26 <b>—</b> 03</span></footer>
+        <footer className="highlights-footer"><span>PEOPLE × IDEAS × EXPLOITS × IMPACT <i /></span><span>CRYPTX ’26 <b>—</b> 03</span></footer>
         <div className="highlights-frame" aria-hidden="true" />
       </div>
     </section>

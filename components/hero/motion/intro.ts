@@ -38,6 +38,18 @@ export function createIntro(
       },
       0.12,
     )
+    // The X is revealed as cold metal, then ignites once the title wipe reaches it.
+    .fromTo(
+      q(".title-x"),
+      { "--x-heat": 0 },
+      { "--x-heat": 1.35, duration: 0.24, ease: "power2.in" },
+      0.9,
+    )
+    .to(
+      q(".title-x"),
+      { "--x-heat": 1, duration: 0.55, ease: "power2.out", clearProps: "--x-heat" },
+      1.14,
+    )
     .fromTo(
       q(".eyebrow,.hero-description,.hero-tagline,.hero-meta,.cta-wrap"),
       { opacity: 0.08 },
