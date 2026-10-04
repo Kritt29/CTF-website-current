@@ -94,13 +94,15 @@ Requirements: Node.js 22.13.0 or newer, npm, and Git.
 git clone https://github.com/Kritt29/CTF-website-current.git
 cd CTF-website-current
 npm ci
-npm run db:migrate:local
+npm run setup
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+`npm run setup` applies the D1 migrations to the local database (the same one `npm run dev` uses) and then interactively creates a local participant. It asks for a username, an optional display name (defaults to the username), and a password with confirmation; the password is hidden while typed, must be 12+ characters and at most 72 UTF-8 bytes, and is stored only as a bcrypt hash through the same code as `participant:create:local`. The email (`<username>@local.ddc.invalid`) and participant ID (`LOCAL-…`) are generated. Setup never touches remote D1 and stops without changes if the username already exists; re-run it with a different username to add more local participants. To reset the local database, stop the dev server and delete `.wrangler/state/v3/d1` (this erases all local data), then run `npm run setup` again.
 
-To provision a local participant, pass JSON through standard input to `npm run participant:create:local`. The required fields are `username`, `email`, `password`, `displayName`, and `participantId`. Do not put passwords in shell history or commit them. To publish a local starting challenge, use `npm run challenge:add:local`; see [docs/PARTICIPANT_PLATFORM.md](docs/PARTICIPANT_PLATFORM.md) for the exact fields and production requirements.
+Open `http://localhost:5173/login` and sign in with the username and password you just chose.
+
+`npm run db:migrate:local` only applies migrations. For scripted provisioning, pass JSON through standard input to `npm run participant:create:local`. The required fields are `username`, `email`, `password`, `displayName`, and `participantId`. Do not put passwords in shell history or commit them. To publish a local starting challenge, use `npm run challenge:add:local`; see [docs/PARTICIPANT_PLATFORM.md](docs/PARTICIPANT_PLATFORM.md) for the exact fields and production requirements.
 
 Useful checks:
 
